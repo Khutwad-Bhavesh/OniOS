@@ -1,23 +1,21 @@
 # OniOS Bare-Metal Kernel Makefile
-
 CC = gcc
-AS = gcc
 LD = ld
+AS = gcc
 RUSTC = rustc
 
-# Check if rustc with i686 target support is available
-HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -o /dev/null 2>/dev/null && echo 1)
-
 CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -std=gnu99 -nostdlib -fno-builtin -fno-stack-protector -mno-sse -mno-sse2 -mno-mmx -mno-80387 -mpreferred-stack-boundary=2
-ASFLAGS = -m32 -c
-RUSTFLAGS = --target i686-unknown-linux-gnu --emit=obj -O -C panic=abort
 LDFLAGS = -m elf_i386 -T linker.ld
+ASFLAGS = -m32 -c
+RUSTFLAGS = --target i686-unknown-linux-gnu --emit=obj -C panic=abort
+
+HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -o /dev/null 2>/dev/null && echo 1)
 
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o vga.o keyboard.o mem.o editor.o doom_engine.o kernel.o safety.o
+OBJS = boot.o vga.o keyboard.o mem.o editor.o kernel.o safety.o
 else
-OBJS = boot.o vga.o keyboard.o mem.o editor.o doom_engine.o kernel.o
+OBJS = boot.o vga.o keyboard.o mem.o editor.o kernel.o
 endif
 
 TARGET = kernel.bin
@@ -42,15 +40,8 @@ mem.o: mem.c mem.h
 editor.o: editor.c editor.h vga.h keyboard.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-doom_engine.o: doom_engine.c doom_engine.h vga.h keyboard.h io.h
+kernel.o: kernel.c vga.h keyboard.h io.h mem.h editor.h
 	$(CC) $(CFLAGS) -c $< -o $@
-
-kernel.o: kernel.c vga.h keyboard.h io.h doom_engine.h mem.h editor.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-
-
-
 
 safety.o: safety.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@
@@ -60,5 +51,3 @@ clean:
 
 run: $(TARGET)
 	qemu-system-i386 -kernel $(TARGET)
-
-.PHONY: all clean run

@@ -1,8 +1,6 @@
 #include "vga.h"
 #include "keyboard.h"
 #include "io.h"
-#include "doom_engine.h"
-#include "endoom.h"
 #include "mem.h"
 #include "editor.h"
 
@@ -11,22 +9,6 @@
 extern int rust_security_check(void);
 extern const char* rust_get_status(void);
 #endif
-
-
-static void print_banner(void);
-
-static void render_endoom(void) {
-
-    uint16_t* const vga = (uint16_t*) 0xB8000;
-    for (int i = 0; i < 2000; i++) {
-        vga[i] = ((uint16_t)endoom_data[i * 2 + 1] << 8) | endoom_data[i * 2];
-    }
-    keyboard_getchar();
-    vga_clear();
-    print_banner();
-}
-
-
 
 static int strcmp(const char* s1, const char* s2) {
     while (*s1 && (*s1 == *s2)) {
@@ -65,15 +47,13 @@ static const struct vfs_entry vfs_table[] = {
     {"/", "sys", 1, ""},
     {"/", "dev", 1, ""},
     {"/", "roms", 1, ""},
-    {"/", "readme.txt", 0, "OniOS Bare-Metal Engine -- Retro Arcade & VFS Kernel!\nType 'game' to play Onizuka Cresta Dodge!\n"},
+    {"/", "readme.txt", 0, "OniOS Bare-Metal Engine -- Clean Unix-like Kernel Foundation!\nType 'edit' to create/modify files | Type 'game' to play Arcade!\n"},
     {"/sys", "cpu", 0, "CPU: x86 32-bit Multiboot Engine\nVendor: x86 Hardware CPU\nMode: Protected 32-bit Ring 0\n"},
     {"/sys", "vga", 0, "Memory: 0xB8000 (VGA Text Buffer 80x25)\nColors: 16-Color Palette (Turbo C Theme)\n"},
     {"/dev", "keyboard", 0, "Port: 0x60 (Data) / 0x64 (Status)\nProtocol: PS/2 Scancode Set 1\n"},
-    {"/roms", "nes_gto.nes", 0, "[NES ROM Header]: Onizuka's Great Adventure (NES 8-Bit) - Ready to Launch!\n"},
-    {"/roms", "snes_cresta.sfc", 0, "[SNES ROM Header]: Uchiyamada's Cresta Grand Prix (SNES 16-Bit)\n"},
-    {"/roms", "doom1.wad", 0, "[IWAD Header]: DOOM Shareware Game Data (2.4MB Original 1993 WAD)\nStatus: Loaded & Verified by OniOS Engine! Type 'doom' to launch 3D Engine.\n"}
+    {"/roms", "nes_gto.nes", 0, "[NES ROM Header]: Onizuka's Great Adventure (NES 8-Bit) - Ready for Emulator Subsystem!\n"},
+    {"/roms", "snes_cresta.sfc", 0, "[SNES ROM Header]: Uchiyamada's Cresta Grand Prix (SNES 16-Bit)\n"}
 };
-
 
 static const size_t VFS_COUNT = sizeof(vfs_table) / sizeof(vfs_table[0]);
 
@@ -81,7 +61,7 @@ static void print_banner(void) {
     /* Turbo C Classic Yellow on Blue Header */
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
     vga_puts("================================================================================\n");
-    vga_puts("   OniOS v1.0 -- Bare-Metal Unix Kernel [VFS Traversal & Retro Engine]          \n");
+    vga_puts("   OniOS v1.0 -- Bare-Metal Unix Kernel [Modular Subsystem Core]                \n");
     vga_puts("   \"Lessons in Operating Systems -- Never follow boring rules!\"           \n");
     vga_puts("================================================================================\n");
     
@@ -100,7 +80,7 @@ static void print_banner(void) {
 #else
     vga_puts("  [C Core]     : Standard Bare-Metal C Subsystem Active\n");
 #endif
-    vga_puts("  Status       : Full 'cd' Directory Traversal Active (Try 'cd roms', 'ls')\n");
+    vga_puts("  Status       : VFS, Heap Allocator & Nano Editor Active (Type 'help')\n");
     vga_puts("================================================================================\n\n");
 }
 
@@ -204,15 +184,13 @@ void shell_run(void) {
         if (strcmp(cmd, "help") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
             vga_puts("Available OniOS Commands:\n");
-            vga_puts("  doom     - Launch 3D Bare-Metal DOOM Raycasting Engine!\n");
-            vga_puts("  endoom   - Display authentic 1993 Id Software DOOM1.WAD screen!\n");
-            vga_puts("  edit <f> - Launch Bare-Metal Nano Text Editor!\n");
-            vga_puts("  mem      - Display dynamic kernel heap RAM usage\n");
-            vga_puts("  bench    - CPU & memory speed benchmark utility\n");
             vga_puts("  cd <dir> - Change working directory (e.g. 'cd roms', 'cd sys', 'cd ..')\n");
             vga_puts("  ls       - List directory contents & subfolders\n");
             vga_puts("  cat <f>  - Display virtual file content\n");
             vga_puts("  pwd      - Print current directory\n");
+            vga_puts("  edit <f> - Launch Bare-Metal Nano Text Editor\n");
+            vga_puts("  mem      - Display dynamic kernel heap RAM usage\n");
+            vga_puts("  bench    - CPU & memory speed benchmark utility\n");
             vga_puts("  game     - Launch Onizuka Cresta Dodge Bare-Metal Arcade!\n");
             vga_puts("  gto      - Display GTO ASCII quote & lesson\n");
             vga_puts("  cresta   - Vice Principal Uchiyamada's Cresta status\n");
@@ -221,14 +199,6 @@ void shell_run(void) {
             vga_puts("  clear    - Clear screen buffer\n");
             vga_puts("  reboot   - Hardware CPU reboot via keyboard controller\n");
         } 
-        else if (strcmp(cmd, "doom") == 0) {
-            doom_main();
-            vga_clear();
-            print_banner();
-        }
-        else if (strcmp(cmd, "endoom") == 0) {
-            render_endoom();
-        }
         else if (strncmp(cmd, "edit ", 5) == 0) {
             const char* fname = cmd + 5;
             editor_open(fname);
@@ -253,9 +223,6 @@ void shell_run(void) {
             vga_puts("  [PASS] 5,000,000 Integer Operations Completed!\n");
             vga_puts("  Result Score: 9,850 ONI-FLOPS (x86 Ring 0 Execution)\n");
         }
-
-
-
         else if (strcmp(cmd, "pwd") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
             vga_puts(current_dir);
@@ -365,6 +332,9 @@ void shell_run(void) {
 }
 
 void kernel_main(void) {
+    /* Initialize Dynamic Heap RAM */
+    mem_init();
+
     /* Set Turbo C style: Light Grey text on Dark Blue background */
     vga_init(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
     print_banner();
