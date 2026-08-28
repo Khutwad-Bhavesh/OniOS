@@ -12,7 +12,6 @@ RUSTFLAGS = --target i686-unknown-linux-gnu --emit=obj -C panic=abort
 HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -o /dev/null 2>/dev/null && echo 1)
 
 ifneq ($(HAS_RUST),)
-ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
 OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o editor.o test_suite.o kernel.o safety.o
 else
@@ -52,8 +51,6 @@ test_suite.o: test_suite.c test_suite.h vga.h mem.h timer.h idt.h
 
 kernel.o: kernel.c vga.h keyboard.h io.h idt.h timer.h mem.h editor.h test_suite.h
 	$(CC) $(CFLAGS) -c $< -o $@
-
-
 
 safety.o: safety.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@
