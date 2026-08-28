@@ -15,9 +15,9 @@ LDFLAGS = -m elf_i386 -T linker.ld
 
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o vga.o keyboard.o kernel.o safety.o
+OBJS = boot.o vga.o keyboard.o doom_engine.o kernel.o safety.o
 else
-OBJS = boot.o vga.o keyboard.o kernel.o
+OBJS = boot.o vga.o keyboard.o doom_engine.o kernel.o
 endif
 
 TARGET = kernel.bin
@@ -36,8 +36,12 @@ vga.o: vga.c vga.h io.h
 keyboard.o: keyboard.c keyboard.h io.h vga.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-kernel.o: kernel.c vga.h keyboard.h io.h
+doom_engine.o: doom_engine.c doom_engine.h vga.h keyboard.h io.h
 	$(CC) $(CFLAGS) -c $< -o $@
+
+kernel.o: kernel.c vga.h keyboard.h io.h doom_engine.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 
 safety.o: safety.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@

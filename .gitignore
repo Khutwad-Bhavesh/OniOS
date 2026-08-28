@@ -1,0 +1,5 @@
+# OniOS Git Ignore
+*.o
+*.bin
+*.zip
+*.tmp
