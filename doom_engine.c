@@ -26,13 +26,16 @@ static const int map[MAP_HEIGHT][MAP_WIDTH] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-/* Fixed-point math approximation for bare-metal raycasting */
-static float px = 2.5f;
-static float py = 2.5f;
-static float dir_x = 1.0f;
-static float dir_y = 0.0f;
-static float plane_x = 0.0f;
-static float plane_y = 0.66f;
+/* Integer Fixed-Point Arithmetic (Scaled by 256) */
+#define FP_SHIFT 8
+#define FP_ONE   (1 << FP_SHIFT)
+
+static int px = 2 * FP_ONE + 128; // 2.5
+static int py = 2 * FP_ONE + 128; // 2.5
+static int dir_x = FP_ONE;        // 1.0
+static int dir_y = 0;             // 0.0
+static int plane_x = 0;           // 0.0
+static int plane_y = 168;         // ~0.66 * 256
 
 static int health = 100;
 static int ammo = 50;
@@ -44,35 +47,35 @@ static void render_doom_frame(void) {
 
     /* Render 3D Raycasted Walls */
     for (int x = 0; x < 80; x++) {
-        float camera_x = 2.0f * x / 80.0f - 1.0f;
-        float ray_dir_x = dir_x + plane_x * camera_x;
-        float ray_dir_y = dir_y + plane_y * camera_x;
+        int camera_x = (2 * x * FP_ONE / 80) - FP_ONE;
+        int ray_dir_x = dir_x + ((plane_x * camera_x) >> FP_SHIFT);
+        int ray_dir_y = dir_y + ((plane_y * camera_x) >> FP_SHIFT);
 
-        int map_x = (int)px;
-        int map_y = (int)py;
+        int map_x = px >> FP_SHIFT;
+        int map_y = py >> FP_SHIFT;
 
-        float delta_dist_x = (ray_dir_x == 0) ? 1e30f : (ray_dir_x > 0 ? 1.0f / ray_dir_x : -1.0f / ray_dir_x);
-        float delta_dist_y = (ray_dir_y == 0) ? 1e30f : (ray_dir_y > 0 ? 1.0f / ray_dir_y : -1.0f / ray_dir_y);
+        int delta_dist_x = (ray_dir_x == 0) ? 32767 : ((FP_ONE * FP_ONE) / (ray_dir_x < 0 ? -ray_dir_x : ray_dir_x));
+        int delta_dist_y = (ray_dir_y == 0) ? 32767 : ((FP_ONE * FP_ONE) / (ray_dir_y < 0 ? -ray_dir_y : ray_dir_y));
 
-        float side_dist_x, side_dist_y;
+        int side_dist_x, side_dist_y;
         int step_x, step_y;
         int hit = 0;
         int side = 0;
 
         if (ray_dir_x < 0) {
             step_x = -1;
-            side_dist_x = (px - map_x) * delta_dist_x;
+            side_dist_x = ((px - (map_x << FP_SHIFT)) * delta_dist_x) >> FP_SHIFT;
         } else {
             step_x = 1;
-            side_dist_x = (map_x + 1.0f - px) * delta_dist_x;
+            side_dist_x = ((((map_x + 1) << FP_SHIFT) - px) * delta_dist_x) >> FP_SHIFT;
         }
 
         if (ray_dir_y < 0) {
             step_y = -1;
-            side_dist_y = (py - map_y) * delta_dist_y;
+            side_dist_y = ((py - (map_y << FP_SHIFT)) * delta_dist_y) >> FP_SHIFT;
         } else {
             step_y = 1;
-            side_dist_y = (map_y + 1.0f - py) * delta_dist_y;
+            side_dist_y = ((((map_y + 1) << FP_SHIFT) - py) * delta_dist_y) >> FP_SHIFT;
         }
 
         /* DDA Raycast loop */
@@ -93,13 +96,13 @@ static void render_doom_frame(void) {
             }
         }
 
-        float perp_wall_dist;
-        if (side == 0) perp_wall_dist = (side_dist_x - delta_dist_x);
-        else          perp_wall_dist = (side_dist_y - delta_dist_y);
+        int perp_wall_dist;
+        if (side == 0) perp_wall_dist = side_dist_x - delta_dist_x;
+        else          perp_wall_dist = side_dist_y - delta_dist_y;
 
-        if (perp_wall_dist < 0.1f) perp_wall_dist = 0.1f;
+        if (perp_wall_dist < 32) perp_wall_dist = 32;
 
-        int line_height = (int)(18.0f / perp_wall_dist);
+        int line_height = (18 * FP_ONE) / (perp_wall_dist > 0 ? perp_wall_dist : 1);
         int draw_start = -line_height / 2 + 9;
         if (draw_start < 0) draw_start = 0;
         int draw_end = line_height / 2 + 9;
@@ -125,7 +128,6 @@ static void render_doom_frame(void) {
                 /* Floor */
                 vga_set_color(vga_entry_color(VGA_COLOR_DARK_GREY, VGA_COLOR_BLUE));
             }
-            /* Render line */
         }
     }
 
@@ -152,12 +154,12 @@ static void render_doom_frame(void) {
 
 void doom_main(void) {
     vga_clear();
-    px = 2.5f;
-    py = 2.5f;
-    dir_x = 1.0f;
-    dir_y = 0.0f;
-    plane_x = 0.0f;
-    plane_y = 0.66f;
+    px = 2 * FP_ONE + 128;
+    py = 2 * FP_ONE + 128;
+    dir_x = FP_ONE;
+    dir_y = 0;
+    plane_x = 0;
+    plane_y = 168;
     health = 100;
     ammo = 50;
     kills = 0;
@@ -176,16 +178,16 @@ void doom_main(void) {
 
         /* Forward / Backward movement */
         if (c == 'w') {
-            float new_x = px + dir_x * 0.4f;
-            float new_y = py + dir_y * 0.4f;
-            if (map[(int)new_y][(int)new_x] == 0) {
+            int new_x = px + ((dir_x * 80) >> FP_SHIFT);
+            int new_y = py + ((dir_y * 80) >> FP_SHIFT);
+            if (map[new_y >> FP_SHIFT][new_x >> FP_SHIFT] == 0) {
                 px = new_x;
                 py = new_y;
             }
         } else if (c == 's') {
-            float new_x = px - dir_x * 0.4f;
-            float new_y = py - dir_y * 0.4f;
-            if (map[(int)new_y][(int)new_x] == 0) {
+            int new_x = px - ((dir_x * 80) >> FP_SHIFT);
+            int new_y = py - ((dir_y * 80) >> FP_SHIFT);
+            if (map[new_y >> FP_SHIFT][new_x >> FP_SHIFT] == 0) {
                 px = new_x;
                 py = new_y;
             }
@@ -193,21 +195,19 @@ void doom_main(void) {
 
         /* Left / Right Turning */
         if (c == 'a') {
-            float rot = -0.2f;
-            float old_dir_x = dir_x;
-            dir_x = dir_x * 0.98f - dir_y * (-0.2f);
-            dir_y = old_dir_x * (-0.2f) + dir_y * 0.98f;
-            float old_plane_x = plane_x;
-            plane_x = plane_x * 0.98f - plane_y * (-0.2f);
-            plane_y = old_plane_x * (-0.2f) + plane_y * 0.98f;
+            int old_dir_x = dir_x;
+            dir_x = ((dir_x * 250) >> 8) - ((dir_y * -51) >> 8);
+            dir_y = ((old_dir_x * -51) >> 8) + ((dir_y * 250) >> 8);
+            int old_plane_x = plane_x;
+            plane_x = ((plane_x * 250) >> 8) - ((plane_y * -51) >> 8);
+            plane_y = ((old_plane_x * -51) >> 8) + ((plane_y * 250) >> 8);
         } else if (c == 'd') {
-            float rot = 0.2f;
-            float old_dir_x = dir_x;
-            dir_x = dir_x * 0.98f - dir_y * 0.2f;
-            dir_y = old_dir_x * 0.2f + dir_y * 0.98f;
-            float old_plane_x = plane_x;
-            plane_x = plane_x * 0.98f - plane_y * 0.2f;
-            plane_y = old_plane_x * 0.2f + plane_y * 0.98f;
+            int old_dir_x = dir_x;
+            dir_x = ((dir_x * 250) >> 8) - ((dir_y * 51) >> 8);
+            dir_y = ((old_dir_x * 51) >> 8) + ((dir_y * 250) >> 8);
+            int old_plane_x = plane_x;
+            plane_x = ((plane_x * 250) >> 8) - ((plane_y * 51) >> 8);
+            plane_y = ((old_plane_x * 51) >> 8) + ((plane_y * 250) >> 8);
         }
 
         /* Shooting */

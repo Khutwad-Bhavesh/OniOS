@@ -1,0 +1,107 @@
+==============================================================================
+DOS Games Archive Game Info Card                                     Version 3
+==============================================================================
+* General Information *
+
+Game title              : DOOM
+Alternate title(s)      : Doom (alternate spelling)
+                          Ultimate Doom, The (commercial re-release title)
+Developer               : id Software
+Publisher               : id Software
+Country of origin       : USA
+Distribution model      : Shareware, Commercial
+
+* Release Information *
+
+Release type            : Shareware (full episode)
+Version                 : 1.9
+Release date            : 1995/02/02
+Language                : English
+License file            : Not included; see DOOMS_19.DAT
+License/Permissions     : "Electronic Distribution is Permitted"
+
+* Distribution Information *
+
+Distribution type       : Digital download
+File name               : doom19s.zip
+File size               : 2 450 688 bytes
+Installer provided      : Yes
+Original location       : ftp://ftp.idsoftware.com/idstuff/doom/
+Retrieved from          : http://ftp.gamers.org/pub/idgames/idstuff/doom/
+
+Additional files        : None
+
+Maintainer              : MrFlibble <mrflibble86@gmail.com>
+==============================================================================
+* Note for DOSBox users *
+
+This software is fully installed and configured to run in the DOSBox emulator.
+You can simply drag and drop the file DOOM.BAT over the DOSBox icon to start
+playing. Experienced DOSBox users may choose other methods of startup.
+
+The software was configured and tested to work with the official DOSBox build
+v0.74-3 available from www.dosbox.com. It may or may not work with any other
+third-party DOSBox distributions that are available.
+
+For playing instructions and other information, please refer to the README.TXT
+file found in the DOOMS directory.
+==============================================================================
+* Source ports *
+
+This game can also be played natively (no DOSBox required) on Windows, MacOS,
+Linux and other modern platforms using one of the source ports.
+
+> Chocolate Doom (as close to the original as possible):
+  https://www.chocolate-doom.org/wiki/index.php/Chocolate_Doom
+
+> Crispy Doom (higher resolution graphics):
+  https://www.chocolate-doom.org/wiki/index.php/Crispy_Doom
+
+> PrBoom+ (many optional enhancements):
+  http://prboom-plus.sourceforge.net/
+
+NOTE: Many other Doom source ports exist, too numerous to mention here. For a
+comprehensive list, please refer to the Doom Wiki:
+https://doomwiki.org/wiki/Source_port
+==============================================================================
+* Game related websites *
+
+Developer website (access via the Wayback Machine):
+http://www.idsoftware.com/killer/doomult.html
+
+Doomworld:
+https://www.doomworld.com/
+
+The Doom Wiki:
+https://doomwiki.org/wiki/Entryway
+
+NOTE: Some sites are only available as copies made by the Wayback Machine:
+http://web.archive.org/
+==============================================================================
+* Disclaimer *
+
+THE GAME DATA IN THIS ARCHIVE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING AND NOT LIMITED TO ANY IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+All game content is copyright to their respective owners.
+
+No files from the original software package provided by the developer and/or
+publisher were modified except for the configuration files needed to set up
+sound devices and input methods.
+
+This software was tested to work with the current official DOSBox build
+(v0.74-3) and was scanned by an antivirus/anti-malware tool.
+
+You use this software at your own risk. DOS Games Archive is not liable for
+any unwanted consequences that may arise from your using this software.
+==============================================================================
+* Download and online play *
+
+This game is available from DOS Games Archive at:
+https://www.dosgamesarchive.com/download/doom/
+
+It can be played online at:
+https://www.dosgamesarchive.com/play/doom/
+
+--- END OF FILE (2022/07/11) ---

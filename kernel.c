@@ -2,12 +2,24 @@
 #include "keyboard.h"
 #include "io.h"
 #include "doom_engine.h"
+#include "endoom.h"
 
 #ifdef HAS_RUST
 /* Rust Memory Safety Subsystem Externs */
 extern int rust_security_check(void);
 extern const char* rust_get_status(void);
 #endif
+
+static void render_endoom(void) {
+    uint16_t* const vga = (uint16_t*) 0xB8000;
+    for (int i = 0; i < 2000; i++) {
+        vga[i] = ((uint16_t)endoom_data[i * 2 + 1] << 8) | endoom_data[i * 2];
+    }
+    keyboard_getchar();
+    vga_clear();
+    print_banner();
+}
+
 
 
 static int strcmp(const char* s1, const char* s2) {
@@ -187,6 +199,7 @@ void shell_run(void) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
             vga_puts("Available OniOS Commands:\n");
             vga_puts("  doom     - Launch 3D Bare-Metal DOOM Raycasting Engine!\n");
+            vga_puts("  endoom   - Display authentic 1993 Id Software DOOM1.WAD screen!\n");
             vga_puts("  cd <dir> - Change working directory (e.g. 'cd roms', 'cd sys', 'cd ..', 'cd /')\n");
             vga_puts("  ls       - List directory contents & subfolders\n");
             vga_puts("  cat <f>  - Display virtual file content\n");
@@ -204,6 +217,10 @@ void shell_run(void) {
             vga_clear();
             print_banner();
         }
+        else if (strcmp(cmd, "endoom") == 0) {
+            render_endoom();
+        }
+
 
         else if (strcmp(cmd, "pwd") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
