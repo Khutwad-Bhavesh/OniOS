@@ -5,6 +5,8 @@
 #include "editor.h"
 #include "idt.h"
 #include "timer.h"
+#include "test_suite.h"
+
 
 
 #ifdef HAS_RUST
@@ -187,6 +189,7 @@ void shell_run(void) {
         if (strcmp(cmd, "help") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
             vga_puts("Available OniOS Commands:\n");
+            vga_puts("  test     - Run 6-Phase Kernel Diagnostic & Stress-Test Suite!\n");
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
             vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
             vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
@@ -205,7 +208,12 @@ void shell_run(void) {
             vga_puts("  clear    - Clear screen buffer\n");
             vga_puts("  reboot   - Hardware CPU reboot via keyboard controller\n");
         } 
+        else if (strcmp(cmd, "test") == 0 || strcmp(cmd, "testall") == 0) {
+            test_suite_run_all( );
+            print_banner();
+        }
         else if (strcmp(cmd, "uptime") == 0) {
+
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
             vga_puts("System Uptime: ");
             vga_putdec(timer_get_uptime_ms() / 1000);

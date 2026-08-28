@@ -14,9 +14,9 @@ HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -
 ifneq ($(HAS_RUST),)
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o editor.o kernel.o safety.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o editor.o test_suite.o kernel.o safety.o
 else
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o editor.o kernel.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o editor.o test_suite.o kernel.o
 endif
 
 TARGET = kernel.bin
@@ -47,8 +47,12 @@ mem.o: mem.c mem.h
 editor.o: editor.c editor.h vga.h keyboard.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-kernel.o: kernel.c vga.h keyboard.h io.h idt.h timer.h mem.h editor.h
+test_suite.o: test_suite.c test_suite.h vga.h mem.h timer.h idt.h
 	$(CC) $(CFLAGS) -c $< -o $@
+
+kernel.o: kernel.c vga.h keyboard.h io.h idt.h timer.h mem.h editor.h test_suite.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 
 
 safety.o: safety.rs
