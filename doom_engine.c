@@ -43,7 +43,7 @@ static int kills = 0;
 static int shooting = 0;
 
 static void render_doom_frame(void) {
-    vga_clear();
+    uint16_t* const vga_buf = (uint16_t*) 0xB8000;
 
     /* Render 3D Raycasted Walls */
     for (int x = 0; x < 80; x++) {
@@ -106,32 +106,38 @@ static void render_doom_frame(void) {
         int draw_start = -line_height / 2 + 9;
         if (draw_start < 0) draw_start = 0;
         int draw_end = line_height / 2 + 9;
-        if (draw_end >= 18) draw_end = 17;
+        if (draw_end >= 19) draw_end = 18;
 
-        /* Wall Color Shading */
-        uint8_t wall_color;
-        if (side == 1) {
-            wall_color = vga_entry_color(VGA_COLOR_CYAN, VGA_COLOR_BLUE);
-        } else {
-            wall_color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE);
-        }
+        /* Render 3D Wall Column directly to VGA buffer at 0xB8000 */
+        for (int y = 0; y < 19; y++) {
+            uint8_t color;
+            char ch;
 
-        /* Render column pixels */
-        for (int y = 0; y < 18; y++) {
             if (y < draw_start) {
-                /* Ceiling */
-                vga_set_color(vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_BLUE));
+                /* Ceiling: Dark Space */
+                color = vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_BLACK);
+                ch = ' ';
             } else if (y <= draw_end) {
-                /* Wall */
-                vga_set_color(wall_color);
+                /* 3D Wall: Solid Block 219 (0xDB) with shading */
+                if (side == 1) {
+                    color = vga_entry_color(VGA_COLOR_CYAN, VGA_COLOR_DARK_GREY);
+                    ch = (char)219;
+                } else {
+                    color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE);
+                    ch = (char)219;
+                }
             } else {
-                /* Floor */
-                vga_set_color(vga_entry_color(VGA_COLOR_DARK_GREY, VGA_COLOR_BLUE));
+                /* Floor: Textured Floor Shader */
+                color = vga_entry_color(VGA_COLOR_DARK_GREY, VGA_COLOR_BLACK);
+                ch = (char)176;
             }
+
+            vga_buf[y * 80 + x] = vga_entry(ch, color);
         }
     }
 
-    /* Render DOOM HUD Bar */
+    /* Render DOOM HUD Bar at Rows 19-24 */
+    vga_set_cursor(0, 19);
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
     vga_puts("================================================================================\n");
     vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_RED));
@@ -142,13 +148,13 @@ static void render_doom_frame(void) {
     vga_puts(" | KILLS: ");
     vga_putdec(kills);
     if (shooting) {
-        vga_puts(" | WEAPON: 🔥 [BANG! SFX] 🔥");
+        vga_puts(" | WEAPON: [BANG! BOOM!]    ");
     } else {
-        vga_puts(" | WEAPON: [🔫 SHOTGUN]");
+        vga_puts(" | WEAPON: [SHOTGUN]        ");
     }
     vga_puts("\n");
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
-    vga_puts(" Controls: [w/s] Move | [a/d] Turn | [Space/f] Shoot | [q] Exit DOOM\n");
+    vga_puts(" Controls: [w/s] Move | [a/d] Turn | [Space/f] Shoot | [q] Exit DOOM            \n");
     vga_puts("================================================================================\n");
 }
 

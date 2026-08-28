@@ -10,7 +10,10 @@ extern int rust_security_check(void);
 extern const char* rust_get_status(void);
 #endif
 
+static void print_banner(void);
+
 static void render_endoom(void) {
+
     uint16_t* const vga = (uint16_t*) 0xB8000;
     for (int i = 0; i < 2000; i++) {
         vga[i] = ((uint16_t)endoom_data[i * 2 + 1] << 8) | endoom_data[i * 2];
