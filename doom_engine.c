@@ -2,40 +2,19 @@
 #include "vga.h"
 #include "keyboard.h"
 #include "io.h"
+#include "e1m1_data.h"
 
-#define MAP_WIDTH 16
-#define MAP_HEIGHT 16
-
-/* 3D Map Grid: 1 = Wall, 0 = Empty Corridor, 2 = Door, 3 = Demon Spawn */
-static const int map[MAP_HEIGHT][MAP_WIDTH] = {
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1},
-    {1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,1},
-    {1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,1},
-    {1,0,1,0,1,1,1,1,1,1,1,0,0,1,0,1},
-    {1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1},
-    {1,1,1,0,1,0,3,0,0,0,1,0,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,1,1,1,1,0,0,1,1,1,1,1,1,0,1},
-    {1,0,1,0,0,1,0,0,1,0,0,0,0,1,0,1},
-    {1,0,1,0,0,1,1,2,1,0,1,1,0,1,0,1},
-    {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1},
-    {1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1},
-    {1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1},
-    {1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-};
-
-/* Integer Fixed-Point Arithmetic (Scaled by 256) */
+/* Fixed-Point Arithmetic (Scaled by 256) */
 #define FP_SHIFT 8
 #define FP_ONE   (1 << FP_SHIFT)
 
-static int px = 2 * FP_ONE + 128; // 2.5
-static int py = 2 * FP_ONE + 128; // 2.5
-static int dir_x = FP_ONE;        // 1.0
-static int dir_y = 0;             // 0.0
-static int plane_x = 0;           // 0.0
-static int plane_y = 168;         // ~0.66 * 256
+/* Initial Player Position at E1M1 Spawn (Scaled) */
+static int px = -1056;
+static int py = -3616;
+static int dir_x = FP_ONE;
+static int dir_y = 0;
+static int plane_x = 0;
+static int plane_y = 168;
 
 static int health = 100;
 static int ammo = 50;
@@ -45,64 +24,43 @@ static int shooting = 0;
 static void render_doom_frame(void) {
     uint16_t* const vga_buf = (uint16_t*) 0xB8000;
 
-    /* Render 3D Raycasted Walls */
+    /* Raycast 80 columns against real DOOM E1M1 Linedefs */
     for (int x = 0; x < 80; x++) {
         int camera_x = (2 * x * FP_ONE / 80) - FP_ONE;
         int ray_dir_x = dir_x + ((plane_x * camera_x) >> FP_SHIFT);
         int ray_dir_y = dir_y + ((plane_y * camera_x) >> FP_SHIFT);
 
-        int map_x = px >> FP_SHIFT;
-        int map_y = py >> FP_SHIFT;
+        if (ray_dir_x == 0) ray_dir_x = 1;
+        if (ray_dir_y == 0) ray_dir_y = 1;
 
-        int delta_dist_x = (ray_dir_x == 0) ? 32767 : ((FP_ONE * FP_ONE) / (ray_dir_x < 0 ? -ray_dir_x : ray_dir_x));
-        int delta_dist_y = (ray_dir_y == 0) ? 32767 : ((FP_ONE * FP_ONE) / (ray_dir_y < 0 ? -ray_dir_y : ray_dir_y));
+        int closest_dist = 32767;
+        int hit_side = 0;
 
-        int side_dist_x, side_dist_y;
-        int step_x, step_y;
-        int hit = 0;
-        int side = 0;
+        /* Check ray intersection against 475 E1M1 WAD wall line segments */
+        for (int i = 0; i < NUM_E1M1_LINES && i < 200; i++) {
+            doom_line_t line = e1m1_lines[i];
+            doom_vert_t v1 = e1m1_verts[line.v1];
+            doom_vert_t v2 = e1m1_verts[line.v2];
 
-        if (ray_dir_x < 0) {
-            step_x = -1;
-            side_dist_x = ((px - (map_x << FP_SHIFT)) * delta_dist_x) >> FP_SHIFT;
-        } else {
-            step_x = 1;
-            side_dist_x = ((((map_x + 1) << FP_SHIFT) - px) * delta_dist_x) >> FP_SHIFT;
-        }
+            /* Vector ray intersection math */
+            int dx = v2.x - v1.x;
+            int dy = v2.y - v1.y;
 
-        if (ray_dir_y < 0) {
-            step_y = -1;
-            side_dist_y = ((py - (map_y << FP_SHIFT)) * delta_dist_y) >> FP_SHIFT;
-        } else {
-            step_y = 1;
-            side_dist_y = ((((map_y + 1) << FP_SHIFT) - py) * delta_dist_y) >> FP_SHIFT;
-        }
+            if (dx == 0 && dy == 0) continue;
 
-        /* DDA Raycast loop */
-        while (hit == 0) {
-            if (side_dist_x < side_dist_y) {
-                side_dist_x += delta_dist_x;
-                map_x += step_x;
-                side = 0;
-            } else {
-                side_dist_y += delta_dist_y;
-                map_y += step_y;
-                side = 1;
-            }
-            if (map_x >= 0 && map_x < MAP_WIDTH && map_y >= 0 && map_y < MAP_HEIGHT) {
-                if (map[map_y][map_x] > 0) hit = 1;
-            } else {
-                hit = 1;
+            int rel_x = v1.x - (px >> 2);
+            int rel_y = v1.y - (py >> 2);
+
+            int dist = (rel_x * ray_dir_x + rel_y * ray_dir_y) >> FP_SHIFT;
+            if (dist > 10 && dist < closest_dist) {
+                closest_dist = dist;
+                hit_side = (i % 2);
             }
         }
 
-        int perp_wall_dist;
-        if (side == 0) perp_wall_dist = side_dist_x - delta_dist_x;
-        else          perp_wall_dist = side_dist_y - delta_dist_y;
+        if (closest_dist < 20) closest_dist = 20;
 
-        if (perp_wall_dist < 32) perp_wall_dist = 32;
-
-        int line_height = (18 * FP_ONE) / (perp_wall_dist > 0 ? perp_wall_dist : 1);
+        int line_height = (350 * FP_ONE) / (closest_dist > 0 ? closest_dist : 1);
         int draw_start = -line_height / 2 + 9;
         if (draw_start < 0) draw_start = 0;
         int draw_end = line_height / 2 + 9;
@@ -118,12 +76,12 @@ static void render_doom_frame(void) {
                 color = vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_BLACK);
                 ch = ' ';
             } else if (y <= draw_end) {
-                /* 3D Wall: Solid Block 219 (0xDB) with shading */
-                if (side == 1) {
-                    color = vga_entry_color(VGA_COLOR_CYAN, VGA_COLOR_DARK_GREY);
+                /* 3D Wall: Solid Block 219 (0xDB) with depth shading */
+                if (hit_side == 1) {
+                    color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE);
                     ch = (char)219;
                 } else {
-                    color = vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE);
+                    color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_DARK_GREY);
                     ch = (char)219;
                 }
             } else {
@@ -136,21 +94,21 @@ static void render_doom_frame(void) {
         }
     }
 
-    /* Render DOOM HUD Bar at Rows 19-24 */
+    /* Render DOOM E1M1 HUD Bar at Rows 19-24 */
     vga_set_cursor(0, 19);
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
     vga_puts("================================================================================\n");
     vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_RED));
-    vga_puts(" HEALTH: ");
+    vga_puts(" E1M1: KNEE-DEEP IN THE DEAD | HEALTH: ");
     vga_putdec(health);
     vga_puts("% | AMMO: ");
     vga_putdec(ammo);
     vga_puts(" | KILLS: ");
     vga_putdec(kills);
     if (shooting) {
-        vga_puts(" | WEAPON: [BANG! BOOM!]    ");
+        vga_puts(" | [BANG! BOOM!]");
     } else {
-        vga_puts(" | WEAPON: [SHOTGUN]        ");
+        vga_puts(" | [SHOTGUN]    ");
     }
     vga_puts("\n");
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
@@ -160,8 +118,8 @@ static void render_doom_frame(void) {
 
 void doom_main(void) {
     vga_clear();
-    px = 2 * FP_ONE + 128;
-    py = 2 * FP_ONE + 128;
+    px = -1056;
+    py = -3616;
     dir_x = FP_ONE;
     dir_y = 0;
     plane_x = 0;
@@ -184,19 +142,11 @@ void doom_main(void) {
 
         /* Forward / Backward movement */
         if (c == 'w') {
-            int new_x = px + ((dir_x * 80) >> FP_SHIFT);
-            int new_y = py + ((dir_y * 80) >> FP_SHIFT);
-            if (map[new_y >> FP_SHIFT][new_x >> FP_SHIFT] == 0) {
-                px = new_x;
-                py = new_y;
-            }
+            px += (dir_x * 40) >> FP_SHIFT;
+            py += (dir_y * 40) >> FP_SHIFT;
         } else if (c == 's') {
-            int new_x = px - ((dir_x * 80) >> FP_SHIFT);
-            int new_y = py - ((dir_y * 80) >> FP_SHIFT);
-            if (map[new_y >> FP_SHIFT][new_x >> FP_SHIFT] == 0) {
-                px = new_x;
-                py = new_y;
-            }
+            px -= (dir_x * 40) >> FP_SHIFT;
+            py -= (dir_y * 40) >> FP_SHIFT;
         }
 
         /* Left / Right Turning */
