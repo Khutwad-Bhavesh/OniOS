@@ -1,8 +1,10 @@
 #include "test_suite.h"
 #include "vga.h"
+#include "keyboard.h"
 #include "mem.h"
 #include "timer.h"
 #include "idt.h"
+
 
 static void print_pass(const char* test_name) {
     vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));

@@ -46,8 +46,9 @@ mem.o: mem.c mem.h
 editor.o: editor.c editor.h vga.h keyboard.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test_suite.o: test_suite.c test_suite.h vga.h mem.h timer.h idt.h
+test_suite.o: test_suite.c test_suite.h vga.h keyboard.h mem.h timer.h idt.h
 	$(CC) $(CFLAGS) -c $< -o $@
+
 
 kernel.o: kernel.c vga.h keyboard.h io.h idt.h timer.h mem.h editor.h test_suite.h
 	$(CC) $(CFLAGS) -c $< -o $@
