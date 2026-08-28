@@ -118,3 +118,10 @@ void vga_putdec(uint32_t val) {
         vga_putchar(buf[i]);
     }
 }
+
+void vga_set_cursor(size_t x, size_t y) {
+    if (x < VGA_WIDTH) vga_column = x;
+    if (y < VGA_HEIGHT) vga_row = y;
+    update_hardware_cursor();
+}
+

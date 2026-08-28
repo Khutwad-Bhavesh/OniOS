@@ -40,5 +40,7 @@ void vga_write(const char* data, size_t size);
 void vga_puts(const char* data);
 void vga_puthex(uint32_t val);
 void vga_putdec(uint32_t val);
+void vga_set_cursor(size_t x, size_t y);
 
 #endif
+
