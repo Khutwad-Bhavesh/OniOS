@@ -3,6 +3,9 @@
 #include "io.h"
 #include "mem.h"
 #include "editor.h"
+#include "idt.h"
+#include "timer.h"
+
 
 #ifdef HAS_RUST
 /* Rust Memory Safety Subsystem Externs */
@@ -184,6 +187,9 @@ void shell_run(void) {
         if (strcmp(cmd, "help") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
             vga_puts("Available OniOS Commands:\n");
+            vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
+            vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
+            vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
             vga_puts("  cd <dir> - Change working directory (e.g. 'cd roms', 'cd sys', 'cd ..')\n");
             vga_puts("  ls       - List directory contents & subfolders\n");
             vga_puts("  cat <f>  - Display virtual file content\n");
@@ -199,11 +205,33 @@ void shell_run(void) {
             vga_puts("  clear    - Clear screen buffer\n");
             vga_puts("  reboot   - Hardware CPU reboot via keyboard controller\n");
         } 
+        else if (strcmp(cmd, "uptime") == 0) {
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_puts("System Uptime: ");
+            vga_putdec(timer_get_uptime_ms() / 1000);
+            vga_puts(" Seconds (");
+            vga_putdec(timer_get_uptime_ms());
+            vga_puts(" ms)\n");
+        }
+        else if (strcmp(cmd, "ticks") == 0) {
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+            vga_puts("PIT 8254 Hardware Timer Ticks: ");
+            vga_putdec(timer_get_ticks());
+            vga_puts(" ticks (100Hz Clock)\n");
+        }
+        else if (strncmp(cmd, "sleep ", 6) == 0) {
+            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+            vga_puts("Sleeping...\n");
+            timer_sleep(1000);
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_puts("Woke up from 1000ms hardware timer sleep!\n");
+        }
         else if (strncmp(cmd, "edit ", 5) == 0) {
             const char* fname = cmd + 5;
             editor_open(fname);
             print_banner();
         }
+
         else if (strcmp(cmd, "mem") == 0 || strcmp(cmd, "free") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
             vga_puts("OniOS Heap RAM Status:\n");
@@ -332,6 +360,12 @@ void shell_run(void) {
 }
 
 void kernel_main(void) {
+    /* Initialize IDT Interrupt Descriptor Table & Remap 8259 PIC */
+    idt_init();
+
+    /* Initialize PIT 8254 Hardware Timer at 100Hz (10ms clock ticks) */
+    timer_init(100);
+
     /* Initialize Dynamic Heap RAM */
     mem_init();
 
@@ -340,3 +374,4 @@ void kernel_main(void) {
     print_banner();
     shell_run();
 }
+
