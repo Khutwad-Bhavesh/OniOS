@@ -1,5 +1,3 @@
-# OniOS Git Ignore
 *.o
 *.bin
-*.zip
-*.tmp
+explainer_data.h
