@@ -172,6 +172,16 @@ static void play_game(void) {
     print_banner();
 }
 
+void test_process(void) {
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLUE));
+    vga_puts("\n[Background Process] Hello from a new thread!\n");
+    vga_puts("[Background Process] Yielding back to main shell...\n");
+    process_yield();
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLUE));
+    vga_puts("\n[Background Process] Resumed! Now exiting thread.\n");
+    process_exit();
+}
+
 void shell_run(void) {
     char cmd[128];
     while (1) {
@@ -193,6 +203,9 @@ void shell_run(void) {
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
             vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
             vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
+            vga_puts("  ps       - List active processes & threads\n");
+            vga_puts("  fork     - Spawn a background test process\n");
+            vga_puts("  yield    - Yield CPU to next process\n");
             vga_puts("  cd <dir> - Change working directory (e.g. 'cd roms', 'cd sys', 'cd ..')\n");
             vga_puts("  ls       - List directory contents & subfolders\n");
             vga_puts("  cat <f>  - Display virtual file content\n");
@@ -208,6 +221,37 @@ void shell_run(void) {
             vga_puts("  clear    - Clear screen buffer\n");
             vga_puts("  reboot   - Hardware CPU reboot via keyboard controller\n");
         } 
+        else if (strcmp(cmd, "ps") == 0) {
+            struct process_control_block* pcb = process_get_table();
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_puts("PID  STATE       NAME\n");
+            vga_puts("---  -----       ----\n");
+            for (int i = 0; i < MAX_PROCESSES; i++) {
+                if (pcb[i].state != PROC_STATE_DEAD) {
+                    vga_putdec(pcb[i].pid);
+                    vga_puts("    ");
+                    if (pcb[i].state == PROC_STATE_RUNNING) vga_puts("RUNNING     ");
+                    else vga_puts("WAITING     ");
+                    vga_puts(pcb[i].name);
+                    vga_puts("\n");
+                }
+            }
+        }
+        else if (strcmp(cmd, "fork") == 0) {
+            int pid = process_create(test_process, "test_thread");
+            if (pid != -1) {
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+                vga_puts("Spawned new thread with PID: ");
+                vga_putdec(pid);
+                vga_puts("\n");
+            } else {
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_puts("Failed to spawn process!\n");
+            }
+        }
+        else if (strcmp(cmd, "yield") == 0) {
+            process_yield();
+        }
         else if (strcmp(cmd, "test") == 0 || strcmp(cmd, "testall") == 0) {
             test_suite_run_all( );
             print_banner();
@@ -377,9 +421,11 @@ void kernel_main(void) {
     /* Initialize Dynamic Heap RAM */
     mem_init();
 
+    /* Initialize Process Control Block Scheduler */
+    process_init();
+
     /* Set Turbo C style: Light Grey text on Dark Blue background */
     vga_init(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
     print_banner();
     shell_run();
 }
-
