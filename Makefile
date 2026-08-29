@@ -49,12 +49,16 @@ process.o: process.c process.h mem.h vga.h
 editor.o: editor.c editor.h vga.h keyboard.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test_suite.o: test_suite.c test_suite.h vga.h keyboard.h mem.h timer.h idt.h
+test_suite.o: test_suite.c test_suite.h vga.h keyboard.h mem.h timer.h idt.h process.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+explainer_data.h: build_explainer.py boot.s vga.c idt.c timer.c kernel.c
+	python3 build_explainer.py
+
+kernel.o: kernel.c vga.h keyboard.h io.h timer.h mem.h process.h editor.h test_suite.h explainer_data.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-kernel.o: kernel.c vga.h keyboard.h io.h idt.h timer.h mem.h editor.h test_suite.h
-	$(CC) $(CFLAGS) -c $< -o $@
 
 safety.o: safety.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@

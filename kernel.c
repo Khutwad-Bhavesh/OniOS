@@ -6,6 +6,8 @@
 #include "idt.h"
 #include "timer.h"
 #include "test_suite.h"
+#include "process.h"
+#include "explainer_data.h"
 
 
 
@@ -203,6 +205,7 @@ void shell_run(void) {
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
             vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
             vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
+            vga_puts("  onizuka  - Run Great Teacher Onizuka's Code Explainer! (e.g. 'onizuka boot.s')\n");
             vga_puts("  ps       - List active processes & threads\n");
             vga_puts("  fork     - Spawn a background test process\n");
             vga_puts("  yield    - Yield CPU to next process\n");
@@ -342,6 +345,58 @@ void shell_run(void) {
                 vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
                 vga_puts("cd: no such directory: ");
                 vga_puts(target);
+                vga_puts("\n");
+            }
+        }
+        else if (strncmp(cmd, "onizuka ", 8) == 0) {
+            const char* path = cmd + 8;
+            int found = 0;
+            for (int i = 0; i < EXPLAINER_NUM_FILES; i++) {
+                if (strcmp(explainer_db[i].filename, path) == 0) {
+                    found = 1;
+                    vga_clear();
+                    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+                    vga_puts("=== ONIZUKA CODE EXPLAINER: ");
+                    vga_puts(path);
+                    vga_puts(" ===\n\n");
+                    
+                    int lines_printed = 2; // header
+                    for (int j = 0; j < explainer_db[i].num_lines; j++) {
+                        const char* line = explainer_db[i].lines[j];
+                        
+                        /* Check for ansi-like GTO marker */
+                        if (strncmp(line, "\\033[93m", 7) == 0) {
+                            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+                            vga_puts(line + 7); /* skip marker */
+                            vga_puts("\n");
+                            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                        } else {
+                            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                            vga_puts(line);
+                            vga_puts("\n");
+                        }
+                        lines_printed++;
+                        
+                        if (lines_printed >= 23 && j < explainer_db[i].num_lines - 1) {
+                            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+                            vga_puts("\n[Press ENTER for next page...]");
+                            keyboard_getchar(); // wait for enter
+                            vga_clear();
+                            lines_printed = 0;
+                        }
+                    }
+                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+                    vga_puts("\n[End of File. Press ENTER to return to shell]");
+                    keyboard_getchar();
+                    vga_clear();
+                    print_banner();
+                    break;
+                }
+            }
+            if (!found) {
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_puts("onizuka: file not found in explainer database: ");
+                vga_puts(path);
                 vga_puts("\n");
             }
         }
