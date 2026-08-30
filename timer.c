@@ -5,16 +5,6 @@
 static volatile uint32_t timer_ticks = 0;
 static uint32_t timer_freq = 100;
 
-void timer_init(uint32_t frequency) {
-    timer_freq = frequency;
-    uint32_t divisor = 1193182 / frequency;
-
-    /* Write PIT 8254 Control Word: Channel 0, Square Wave Mode */
-    outb(0x43, 0x36);
-    outb(0x40, (uint8_t)(divisor & 0xFF));
-    outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));
-}
-
 void timer_handler(void) {
     timer_ticks++;
     
@@ -23,6 +13,21 @@ void timer_handler(void) {
 
     /* Send End of Interrupt (EOI) signal to Master PIC */
     outb(0x20, 0x20);
+}
+
+extern void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
+extern void irq0_handler_asm(void);
+
+void timer_init(uint32_t frequency) {
+    timer_freq = frequency;
+    uint32_t divisor = 1193182 / frequency;
+
+    /* Write PIT 8254 Control Word: Channel 0, Square Wave Mode */
+    outb(0x43, 0x36);
+    outb(0x40, (uint8_t)(divisor & 0xFF));
+    outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));
+    
+    idt_set_gate(32, (uint32_t)irq0_handler_asm, 0x10, 0x8E);
 }
 
 uint32_t timer_get_ticks(void) {
