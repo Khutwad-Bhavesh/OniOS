@@ -13,28 +13,41 @@ HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -
 
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o editor.o test_suite.o kernel.o safety.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o test_suite.o kernel.o safety.o
 else
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o editor.o test_suite.o kernel.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o test_suite.o kernel.o
 endif
 
 TARGET = kernel.bin
+ISO_TARGET = OniOS.iso
 
-all: $(TARGET)
+all: $(ISO_TARGET)
 
 $(TARGET): $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $^
+
+$(ISO_TARGET): $(TARGET)
+	mkdir -p isodir/boot/grub
+	cp $(TARGET) isodir/boot/$(TARGET)
+	echo 'set timeout=0' > isodir/boot/grub/grub.cfg
+	echo 'set default=0' >> isodir/boot/grub/grub.cfg
+	echo 'menuentry "OniOS" {' >> isodir/boot/grub/grub.cfg
+	echo '  set gfxpayload=800x600x32' >> isodir/boot/grub/grub.cfg
+	echo '  multiboot /boot/$(TARGET)' >> isodir/boot/grub/grub.cfg
+	echo '  boot' >> isodir/boot/grub/grub.cfg
+	echo '}' >> isodir/boot/grub/grub.cfg
+	grub-mkrescue -o $(ISO_TARGET) isodir
 
 boot.o: boot.s
-	$(AS) $(ASFLAGS) $< -o $@
+	$(CC) -m32 -c $< -o $@
 
-vga.o: vga.c vga.h io.h
+vga.o: vga.c vga.h graphics.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-keyboard.o: keyboard.c keyboard.h io.h vga.h
+keyboard.o: keyboard.c keyboard.h io.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-idt.o: idt.c idt.h io.h vga.h
+idt.o: idt.c idt.h io.h keyboard.h timer.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 timer.o: timer.c timer.h io.h
@@ -43,28 +56,28 @@ timer.o: timer.c timer.h io.h
 mem.o: mem.c mem.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+graphics.o: graphics.c graphics.h font8x8.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 process.o: process.c process.h mem.h vga.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 editor.o: editor.c editor.h vga.h keyboard.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test_suite.o: test_suite.c test_suite.h vga.h keyboard.h mem.h timer.h idt.h process.h
+test_suite.o: test_suite.c test_suite.h vga.h mem.h timer.h process.h graphics.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-explainer_data.h: build_explainer.py boot.s vga.c idt.c timer.c kernel.c
+kernel.o: kernel.c vga.h idt.h keyboard.h mem.h process.h editor.h test_suite.h multiboot.h graphics.h
 	python3 build_explainer.py
-
-kernel.o: kernel.c vga.h keyboard.h io.h timer.h mem.h process.h editor.h test_suite.h explainer_data.h
 	$(CC) $(CFLAGS) -c $< -o $@
-
-
 
 safety.o: safety.rs
 	$(RUSTC) $(RUSTFLAGS) $< -o $@
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f *.o $(TARGET) $(ISO_TARGET)
+	rm -rf isodir
 
-run: $(TARGET)
-	qemu-system-i386 -kernel $(TARGET)
+run: $(ISO_TARGET)
+	qemu-system-i386 -cdrom $(ISO_TARGET) -vga std

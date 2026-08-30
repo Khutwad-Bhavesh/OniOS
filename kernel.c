@@ -472,7 +472,10 @@ void shell_run(void) {
     }
 }
 
-void kernel_main(void) {
+#include "multiboot.h"
+#include "graphics.h"
+
+void kernel_main(uint32_t magic, uint32_t addr) {
     /* Initialize IDT Interrupt Descriptor Table & Remap 8259 PIC */
     idt_init();
 
@@ -485,8 +488,32 @@ void kernel_main(void) {
     /* Initialize Process Control Block Scheduler */
     process_init();
 
+    /* Initialize VESA Graphics Framebuffer from Multiboot Info */
+    if (magic == MULTIBOOT_BOOTLOADER_MAGIC) {
+        multiboot_info_t* mbd = (multiboot_info_t*) addr;
+        
+        /* Check if framebuffer info is valid (flags bit 12) */
+        if (mbd->flags & (1 << 12)) {
+            graphics_init(mbd->framebuffer_addr, mbd->framebuffer_width, 
+                          mbd->framebuffer_height, mbd->framebuffer_pitch, 
+                          mbd->framebuffer_bpp);
+        }
+    }
+
     /* Set Turbo C style: Light Grey text on Dark Blue background */
     vga_init(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+    
+    if (magic == MULTIBOOT_BOOTLOADER_MAGIC && graphics_width > 0) {
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+        vga_puts("VESA Graphics Initialized: ");
+        vga_putdec(graphics_width);
+        vga_puts("x");
+        vga_putdec(graphics_height);
+        vga_puts(" @ ");
+        vga_putdec(graphics_bpp);
+        vga_puts(" bpp\n");
+    }
+
     print_banner();
     shell_run();
 }
