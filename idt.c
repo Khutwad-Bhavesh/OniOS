@@ -25,8 +25,8 @@ static void pic_remap(void) {
     outb(0xA1, 0x02);
     outb(0x21, 0x01);
     outb(0xA1, 0x01);
-    outb(0x21, 0x00); // Enable all Master IRQs
-    outb(0xA1, 0x00); // Enable all Slave IRQs
+    outb(0x21, 0xFE); // Enable ONLY IRQ0 (bit 0 is 0)
+    outb(0xA1, 0xFF); // Disable all Slave IRQs
 }
 
 void idt_init(void) {
