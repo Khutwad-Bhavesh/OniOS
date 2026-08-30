@@ -39,10 +39,10 @@ static void redraw_char(size_t x, size_t y) {
     uint32_t fg = vga_palette[col & 0x0F];
     uint32_t bg = vga_palette[(col >> 4) & 0x0F];
     
-    /* Draw background rect (16x16) */
-    graphics_draw_rect(x * 16, y * 16, 16, 16, bg);
-    /* Draw character scaled by 2, transparent bg since we just drew it */
-    graphics_draw_char_scaled(c, x * 16, y * 16, fg, 0xFFFFFFFF, 2);
+    /* Draw background rect (8x16) */
+    graphics_draw_rect(x * 8, y * 16, 8, 16, bg);
+    /* Draw character scaled by 1, transparent bg since we just drew it */
+    graphics_draw_char_scaled(c, x * 8, y * 16, fg, 0xFFFFFFFF, 1);
 }
 
 void vga_init(uint8_t color) {
@@ -96,7 +96,12 @@ static void scroll(void) {
     }
 }
 
+void serial_putchar(char c) {
+    outb(0x3F8, c);
+}
+
 void vga_putchar(char c) {
+    serial_putchar(c);
     if (c == '\n') {
         vga_column = 0;
         if (++vga_row == VGA_HEIGHT) {

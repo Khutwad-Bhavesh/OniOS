@@ -30,6 +30,19 @@ char keyboard_getchar(void) {
     }
 }
 
+char keyboard_getchar_nowait(void) {
+    if (inb(0x64) & 1) {
+        uint8_t scancode = inb(0x60);
+        if (!(scancode & 0x80)) {
+            char c = scancode_map[scancode];
+            if (c != 0) {
+                return c;
+            }
+        }
+    }
+    return 0;
+}
+
 void keyboard_readline(char* buffer, int max_len) {
     int pos = 0;
     while (1) {
@@ -50,4 +63,17 @@ void keyboard_readline(char* buffer, int max_len) {
             }
         }
     }
+}
+
+int keyboard_get_event(int* pressed, char* c) {
+    if (inb(0x64) & 1) {
+        uint8_t scancode = inb(0x60);
+        *pressed = !(scancode & 0x80);
+        char ch = scancode_map[scancode & 0x7F];
+        if (ch != 0) {
+            *c = ch;
+            return 1;
+        }
+    }
+    return 0;
 }

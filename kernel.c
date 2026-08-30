@@ -176,6 +176,12 @@ static void play_game(void) {
     print_banner();
 }
 
+void test_suite_run(void);
+extern void doomgeneric_Create(int argc, char **argv);
+
+uint32_t doom_wad_start = 0;
+uint32_t doom_wad_size = 0;
+
 void test_process(void) {
     vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
     vga_puts("\n[Background Process] Hello from a new thread!\n");
@@ -188,6 +194,22 @@ void test_process(void) {
 
 void shell_run(void) {
     char cmd[128];
+    vga_puts("Type 'help' for a list of commands.\n");
+
+    /* AUTO LAUNCH DOOM */
+    if (doom_wad_start == 0) {
+        vga_puts("ERROR: doom1.wad module not found in multiboot!\n");
+    } else {
+        vga_puts("Launching id Software DOOM (Doomgeneric)!\n");
+        char* argv[] = {"doom", NULL};
+        doomgeneric_Create(1, argv);
+        while (1) {
+            vga_puts("T");
+            extern void doomgeneric_Tick(void);
+            doomgeneric_Tick();
+        }
+    }
+
     while (1) {
         /* Shell Prompt displaying current_dir in Bright Green */
         vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
@@ -437,6 +459,19 @@ void shell_run(void) {
             audio_play_doom_theme();
             vga_puts("Now playing: DOOM E1M1 'At Doom's Gate' in the background!\n");
         }
+        else if (strcmp(cmd, "dosdoom") == 0) {
+            if (doom_wad_start == 0) {
+                vga_puts("ERROR: doom1.wad module not found in multiboot!\n");
+            } else {
+                vga_puts("Launching id Software DOOM (Doomgeneric)!\n");
+                char* argv[] = {"doom", NULL};
+                doomgeneric_Create(1, argv);
+                while (1) {
+                    extern void doomgeneric_Tick(void);
+                    doomgeneric_Tick();
+                }
+            }
+        }
         else if (strcmp(cmd, "gto") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
             vga_puts("\n  \"I'm Eikichi Onizuka, 22 years old, single! Welcome to OniOS!\"\n");
@@ -507,6 +542,15 @@ void kernel_main(uint32_t magic, uint32_t addr) {
                           mbd->framebuffer_height, mbd->framebuffer_pitch, 
                           mbd->framebuffer_bpp);
         }
+        
+        /* Check if multiboot modules are valid (flags bit 3) */
+        if (mbd->flags & (1 << 3)) {
+            multiboot_module_t* mod = (multiboot_module_t*) mbd->mods_addr;
+            if (mbd->mods_count > 0) {
+                doom_wad_start = mod->mod_start;
+                doom_wad_size = mod->mod_end - mod->mod_start;
+            }
+        }
     }
 
     /* Set Turbo C style: Light Grey text on Dark Blue background */
@@ -520,9 +564,16 @@ void kernel_main(uint32_t magic, uint32_t addr) {
         vga_putdec(graphics_height);
         vga_puts(" @ ");
         vga_putdec(graphics_bpp);
-        vga_puts(" bpp\n");
     }
 
+    uint16_t cs_val, ds_val;
+    asm volatile("mov %%cs, %0" : "=r"(cs_val));
+    asm volatile("mov %%ds, %0" : "=r"(ds_val));
+    vga_puts("CS: "); vga_putdec(cs_val);
+    vga_puts(" DS: "); vga_putdec(ds_val);
+    vga_puts("\n");
+
+    asm volatile("sti");
     print_banner();
     shell_run();
 }

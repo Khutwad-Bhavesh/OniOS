@@ -1,6 +1,6 @@
 #include "mem.h"
 
-#define HEAP_SIZE (1024 * 1024) /* 1MB Dynamic Memory Heap */
+#define HEAP_SIZE (32 * 1024 * 1024) /* 32MB Dynamic Memory Heap */
 
 static uint8_t heap[HEAP_SIZE];
 static size_t heap_used = 0;
