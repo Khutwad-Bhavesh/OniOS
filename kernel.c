@@ -7,7 +7,7 @@
 #include "timer.h"
 #include "test_suite.h"
 #include "process.h"
-#include "explainer_data.h"
+#include "onizuka_lessons.h"
 #include "doom_engine.h"
 #include "audio.h"
 
@@ -229,7 +229,7 @@ void shell_run(void) {
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
             vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
             vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
-            vga_puts("  onizuka  - Run Great Teacher Onizuka's Code Explainer! (e.g. 'onizuka boot.s')\n");
+            vga_puts("  onizuka  - Run Great Teacher Onizuka's Interactive Lessons! (e.g. 'onizuka boot')\n");
             vga_puts("  ps       - List active processes & threads\n");
             vga_puts("  fork     - Spawn a background test process\n");
             vga_puts("  yield    - Yield CPU to next process\n");
@@ -373,50 +373,72 @@ void shell_run(void) {
             }
         }
         else if (strncmp(cmd, "onizuka", 7) == 0) {
-            if (cmd[7] != ' ') {
+            if (cmd[7] != ' ' || cmd[8] == '\0') {
                 vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-                vga_puts("Usage: onizuka <filename>\n");
-                vga_puts("Available files: boot.s, vga.c, idt.c, timer.c, kernel.c\n");
+                vga_puts("Usage: onizuka <lesson>\n");
+                vga_puts("Available lessons: boot, interrupts, vga\n");
             } else {
-                const char* path = cmd + 8;
+                const char* topic = cmd + 8;
                 int found = 0;
-                for (int i = 0; i < EXPLAINER_NUM_FILES; i++) {
-                    if (strcmp(explainer_db[i].filename, path) == 0) {
+                for (int i = 0; i < ONIZUKA_NUM_LESSONS; i++) {
+                    if (strcmp(onizuka_db[i].topic, topic) == 0) {
                         found = 1;
                         vga_clear();
                         vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
-                        vga_puts("=== ONIZUKA CODE EXPLAINER: ");
-                        vga_puts(path);
-                        vga_puts(" ===\n\n");
-                        
-                        int lines_printed = 2; // header
-                        for (int j = 0; j < explainer_db[i].num_lines; j++) {
-                            const char* line = explainer_db[i].lines[j];
-                            
-                            /* Check for ansi-like GTO marker */
-                            if (strncmp(line, "\\033[93m", 7) == 0) {
-                                vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
-                                vga_puts(line + 7); /* skip marker */
-                                vga_puts("\n");
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-                            } else {
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-                                vga_puts(line);
-                                vga_puts("\n");
-                            }
-                            lines_printed++;
-                            
-                            if (lines_printed >= 15 && j < explainer_db[i].num_lines - 1) {
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-                                vga_puts("\n[Press ENTER for next page...]\n");
-                                while (keyboard_getchar() != '\n');
-                                vga_clear();
-                                lines_printed = 0;
-                            }
-                        }
+                        vga_puts("=== ONIZUKA CODE EXPLAINER ===\n");
                         vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
-                        vga_puts("\n[End of File. Press ENTER to return to shell]");
-                        keyboard_getchar();
+                        vga_puts(onizuka_db[i].title);
+                        vga_puts("\n\n");
+                        
+                        /* Print Diagram */
+                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+                        for (int j = 0; j < onizuka_db[i].diagram_lines; j++) {
+                            const char* line = onizuka_db[i].diagram[j];
+                            const char* p = line;
+                            while (*p) {
+                                if (strncmp(p, "\\033[93m", 7) == 0) {
+                                    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
+                                    p += 7;
+                                } else if (strncmp(p, "\\033[0m", 6) == 0) {
+                                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+                                    p += 6;
+                                } else {
+                                    char tmp[2] = {*p, '\0'};
+                                    vga_puts(tmp);
+                                    p++;
+                                }
+                            }
+                            vga_puts("\n");
+                        }
+                        
+                        /* Interactive Steps */
+                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+                        vga_puts("\nPress [ENTER] to step through the lesson...\n\n");
+                        
+                        for (int k = 0; k < onizuka_db[i].num_steps; k++) {
+                            while (keyboard_getchar() != '\n'); /* Wait for ENTER */
+                            
+                            const char* step = onizuka_db[i].steps[k].text;
+                            const char* p = step;
+                            while (*p) {
+                                if (strncmp(p, "\\033[93m", 7) == 0) {
+                                    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
+                                    p += 7;
+                                } else if (strncmp(p, "\\033[0m", 6) == 0) {
+                                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+                                    p += 6;
+                                } else {
+                                    char tmp[2] = {*p, '\0'};
+                                    vga_puts(tmp);
+                                    p++;
+                                }
+                            }
+                            vga_puts("\n");
+                        }
+                        
+                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
+                        vga_puts("\n[End of Lesson. Press ENTER to return to shell]");
+                        while (keyboard_getchar() != '\n');
                         vga_clear();
                         print_banner();
                         break;
@@ -424,9 +446,7 @@ void shell_run(void) {
                 }
                 if (!found) {
                     vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
-                    vga_puts("onizuka: file not found in explainer database: ");
-                    vga_puts(path);
-                    vga_puts("\n");
+                    vga_puts("onizuka: lesson not found. Type 'onizuka' to see available lessons.\n");
                 }
             }
         }
