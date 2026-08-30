@@ -17,9 +17,9 @@ void editor_open(const char* filename) {
     vga_puts("                                 \n");
 
     /* Body background */
-    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
     vga_puts("--------------------------------------------------------------------------------\n");
-    vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
 
     text_len = 0;
     for (size_t i = 0; i < MAX_TEXT_SIZE; i++) {

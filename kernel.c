@@ -66,13 +66,13 @@ static const size_t VFS_COUNT = sizeof(vfs_table) / sizeof(vfs_table[0]);
 
 static void print_banner(void) {
     /* Turbo C Classic Yellow on Blue Header */
-    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
     vga_puts("================================================================================\n");
     vga_puts("   OniOS v1.0 -- Bare-Metal Unix Kernel [Modular Subsystem Core]                \n");
     vga_puts("   \"Lessons in Operating Systems -- Never follow boring rules!\"           \n");
     vga_puts("================================================================================\n");
     
-    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
 #ifdef HAS_RUST
     vga_puts("  Architecture : x86 32-bit Multiboot Kernel (C + ASM + Rust)\n");
 #else
@@ -94,11 +94,11 @@ static void print_banner(void) {
 /* Bare-Metal Retro Game: Onizuka Cresta Dodge */
 static void play_game(void) {
     vga_clear();
-    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
     vga_puts("================================================================================\n");
     vga_puts("         🎮 ONIZUKA CRESTA DODGE -- Bare-Metal Arcade Engine 🎮               \n");
     vga_puts("================================================================================\n");
-    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
     vga_puts(" Controls: 'a' = Move Left | 'd' = Move Right | 'q' = Quit Game\n");
     vga_puts(" Objective: Dodge Uchiyamada's Crestas [CAR] descending down the highway!\n");
     vga_puts("--------------------------------------------------------------------------------\n\n");
@@ -111,7 +111,7 @@ static void play_game(void) {
 
     while (!game_over) {
         /* Render game state */
-        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
         vga_puts(" Score: ");
         vga_putdec(score);
         vga_puts(" | Player Pos: ");
@@ -120,17 +120,17 @@ static void play_game(void) {
         vga_putdec(car_x);
         vga_puts("\n");
 
-        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
         vga_puts("  [CAR] Uchiyamada's Cresta approaching at Y=");
         vga_putdec(car_y);
         vga_puts("\n");
 
-        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
         vga_puts("  (P) Onizuka's Bike at X=");
         vga_putdec(player_x);
         vga_puts("\n\n");
 
-        vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
         vga_puts(" Press key [a/d/q]: ");
 
         char c = keyboard_getchar();
@@ -152,13 +152,13 @@ static void play_game(void) {
             car_y = 6;
             car_x = 10 + ((score * 17 + 23) % 55);
             score += 100;
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("  [!] Cresta Dodged! +100 Points!\n");
         }
 
         /* Collision detection */
         if (car_y >= 18 && (player_x >= car_x - 3 && player_x <= car_x + 3)) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
             vga_puts("\n  💥 BOOM! You crashed into Vice Principal Uchiyamada's Cresta! 💥\n");
             vga_puts("  GAME OVER! Final Score: ");
             vga_putdec(score);
@@ -167,7 +167,7 @@ static void play_game(void) {
         }
     }
 
-    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
     vga_puts("Press any key to return to OniOS Shell...");
     keyboard_getchar();
     vga_clear();
@@ -175,11 +175,11 @@ static void play_game(void) {
 }
 
 void test_process(void) {
-    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
     vga_puts("\n[Background Process] Hello from a new thread!\n");
     vga_puts("[Background Process] Yielding back to main shell...\n");
     process_yield();
-    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLUE));
+    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
     vga_puts("\n[Background Process] Resumed! Now exiting thread.\n");
     process_exit();
 }
@@ -188,18 +188,18 @@ void shell_run(void) {
     char cmd[128];
     while (1) {
         /* Shell Prompt displaying current_dir in Bright Green */
-        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
         vga_puts("OniOS:");
         vga_puts(current_dir);
         vga_puts("> ");
 
         /* User input in Light Grey */
-        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
         keyboard_readline(cmd, 128);
 
         /* Command execution */
         if (strcmp(cmd, "help") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
             vga_puts("Available OniOS Commands:\n");
             vga_puts("  test     - Run 6-Phase Kernel Diagnostic & Stress-Test Suite!\n");
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
@@ -226,7 +226,7 @@ void shell_run(void) {
         } 
         else if (strcmp(cmd, "ps") == 0) {
             struct process_control_block* pcb = process_get_table();
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("PID  STATE       NAME\n");
             vga_puts("---  -----       ----\n");
             for (int i = 0; i < MAX_PROCESSES; i++) {
@@ -243,12 +243,12 @@ void shell_run(void) {
         else if (strcmp(cmd, "fork") == 0) {
             int pid = process_create(test_process, "test_thread");
             if (pid != -1) {
-                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
                 vga_puts("Spawned new thread with PID: ");
                 vga_putdec(pid);
                 vga_puts("\n");
             } else {
-                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                 vga_puts("Failed to spawn process!\n");
             }
         }
@@ -261,7 +261,7 @@ void shell_run(void) {
         }
         else if (strcmp(cmd, "uptime") == 0) {
 
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("System Uptime: ");
             vga_putdec(timer_get_uptime_ms() / 1000);
             vga_puts(" Seconds (");
@@ -269,16 +269,16 @@ void shell_run(void) {
             vga_puts(" ms)\n");
         }
         else if (strcmp(cmd, "ticks") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
             vga_puts("PIT 8254 Hardware Timer Ticks: ");
             vga_putdec(timer_get_ticks());
             vga_puts(" ticks (100Hz Clock)\n");
         }
         else if (strncmp(cmd, "sleep ", 6) == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
             vga_puts("Sleeping...\n");
             timer_sleep(1000);
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("Woke up from 1000ms hardware timer sleep!\n");
         }
         else if (strncmp(cmd, "edit ", 5) == 0) {
@@ -288,7 +288,7 @@ void shell_run(void) {
         }
 
         else if (strcmp(cmd, "mem") == 0 || strcmp(cmd, "free") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("OniOS Heap RAM Status:\n");
             vga_puts("  Total Heap: 1,048,576 Bytes (1MB Ring 0 Memory)\n");
             vga_puts("  Free Heap : ");
@@ -296,23 +296,23 @@ void shell_run(void) {
             vga_puts(" Bytes\n");
         }
         else if (strcmp(cmd, "bench") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
             vga_puts("Running OniOS CPU & Memory Benchmark...\n");
             uint32_t start = 0;
             for (uint32_t i = 0; i < 5000000; i++) {
                 start += (i * 3 + 7) ^ 0x5A5A;
             }
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("  [PASS] 5,000,000 Integer Operations Completed!\n");
             vga_puts("  Result Score: 9,850 ONI-FLOPS (x86 Ring 0 Execution)\n");
         }
         else if (strcmp(cmd, "pwd") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts(current_dir);
             vga_puts("\n");
         }
         else if (strcmp(cmd, "ls") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
             vga_puts("Contents of ");
             vga_puts(current_dir);
             vga_puts(":\n");
@@ -320,10 +320,10 @@ void shell_run(void) {
                 if (strcmp(vfs_table[i].dir, current_dir) == 0) {
                     vga_puts("  ");
                     if (vfs_table[i].is_dir) {
-                        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+                        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
                         vga_puts("[DIR]  ");
                     } else {
-                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
                         vga_puts("[FILE] ");
                     }
                     vga_puts(vfs_table[i].name);
@@ -342,7 +342,7 @@ void shell_run(void) {
             } else if (strcmp(target, "dev") == 0 || strcmp(target, "/dev") == 0) {
                 strcpy(current_dir, "/dev");
             } else {
-                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                 vga_puts("cd: no such directory: ");
                 vga_puts(target);
                 vga_puts("\n");
@@ -350,7 +350,7 @@ void shell_run(void) {
         }
         else if (strncmp(cmd, "onizuka", 7) == 0) {
             if (cmd[7] != ' ') {
-                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                 vga_puts("Usage: onizuka <filename>\n");
                 vga_puts("Available files: boot.s, vga.c, idt.c, timer.c, kernel.c\n");
             } else {
@@ -360,7 +360,7 @@ void shell_run(void) {
                     if (strcmp(explainer_db[i].filename, path) == 0) {
                         found = 1;
                         vga_clear();
-                        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+                        vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
                         vga_puts("=== ONIZUKA CODE EXPLAINER: ");
                         vga_puts(path);
                         vga_puts(" ===\n\n");
@@ -371,26 +371,26 @@ void shell_run(void) {
                             
                             /* Check for ansi-like GTO marker */
                             if (strncmp(line, "\\033[93m", 7) == 0) {
-                                vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+                                vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
                                 vga_puts(line + 7); /* skip marker */
                                 vga_puts("\n");
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
                             } else {
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
                                 vga_puts(line);
                                 vga_puts("\n");
                             }
                             lines_printed++;
                             
                             if (lines_printed >= 22 && j < explainer_db[i].num_lines - 1) {
-                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLUE));
+                                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
                                 vga_puts("\n[Press ENTER for next page...]");
                                 keyboard_getchar(); // wait for enter
                                 vga_clear();
                                 lines_printed = 0;
                             }
                         }
-                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+                        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
                         vga_puts("\n[End of File. Press ENTER to return to shell]");
                         keyboard_getchar();
                         vga_clear();
@@ -399,7 +399,7 @@ void shell_run(void) {
                     }
                 }
                 if (!found) {
-                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                     vga_puts("onizuka: file not found in explainer database: ");
                     vga_puts(path);
                     vga_puts("\n");
@@ -412,14 +412,14 @@ void shell_run(void) {
             for (size_t i = 0; i < VFS_COUNT; i++) {
                 if ((strcmp(vfs_table[i].name, path) == 0 && strcmp(vfs_table[i].dir, current_dir) == 0) ||
                     (strncmp(path, "/", 1) == 0 && strcmp(vfs_table[i].name, path + (path[1] == 'r' ? 6 : 5)) == 0)) {
-                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+                    vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
                     vga_puts(vfs_table[i].content);
                     found = 1;
                     break;
                 }
             }
             if (!found) {
-                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                 vga_puts("cat: file not found: ");
                 vga_puts(path);
                 vga_puts("\n");
@@ -429,32 +429,32 @@ void shell_run(void) {
             play_game();
         }
         else if (strcmp(cmd, "gto") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
             vga_puts("\n  \"I'm Eikichi Onizuka, 22 years old, single! Welcome to OniOS!\"\n");
             vga_puts("  Lesson 1: If an OS crashes, give it a German Suplex!\n\n");
         } 
         else if (strcmp(cmd, "cresta") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
             vga_puts("  [!] BOOM! Vice Principal Uchiyamada's Cresta just got wrecked again! 🚗💨\n");
         } 
         else if (strcmp(cmd, "suplex") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
             vga_puts("  [!] EIKICHI ONIZUKA DELIVERS A GERMAN SUPLEX TO THE KERNEL BUG! 🤼‍♂️💥\n");
         } 
         else if (strcmp(cmd, "info") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
             vga_puts("  OS Name    : OniOS Bare-Metal Kernel\n");
             vga_puts("  VGA Address: ");
             vga_puthex(0xB8000);
             vga_puts("\n  Keyboard IO: Port 0x60 / Status 0x64\n");
         } 
         else if (strcmp(cmd, "clear") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
             vga_clear();
             print_banner();
         } 
         else if (strcmp(cmd, "reboot") == 0) {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
             vga_puts("Rebooting hardware CPU...\n");
             /* Pulse CPU reset line via PS/2 keyboard controller */
             uint8_t good = 0x02;
@@ -464,7 +464,7 @@ void shell_run(void) {
             outb(0x64, 0xFE);
         } 
         else if (cmd[0] != '\0') {
-            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLUE));
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
             vga_puts("Unknown command: ");
             vga_puts(cmd);
             vga_puts(" (type 'help' for commands)\n");
@@ -501,10 +501,10 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     }
 
     /* Set Turbo C style: Light Grey text on Dark Blue background */
-    vga_init(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE));
+    vga_init(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
     
     if (magic == MULTIBOOT_BOOTLOADER_MAGIC && graphics_width > 0) {
-        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLUE));
+        vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
         vga_puts("VESA Graphics Initialized: ");
         vga_putdec(graphics_width);
         vga_puts("x");
