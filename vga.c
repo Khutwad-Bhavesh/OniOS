@@ -41,8 +41,8 @@ static void redraw_char(size_t x, size_t y) {
     
     /* Draw background rect (16x16) */
     graphics_draw_rect(x * 16, y * 16, 16, 16, bg);
-    /* Draw character scaled by 2 */
-    graphics_draw_char_scaled(c, x * 16, y * 16, fg, bg, 2);
+    /* Draw character scaled by 2, transparent bg since we just drew it */
+    graphics_draw_char_scaled(c, x * 16, y * 16, fg, 0xFFFFFFFF, 2);
 }
 
 void vga_init(uint8_t color) {
@@ -53,11 +53,14 @@ void vga_init(uint8_t color) {
 }
 
 void vga_clear(void) {
+    if (graphics_width) {
+        graphics_clear(vga_palette[(vga_color >> 4) & 0x0F]);
+    }
     for (size_t y = 0; y < VGA_HEIGHT; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {
             text_buffer[y][x] = ' ';
             color_buffer[y][x] = vga_color;
-            redraw_char(x, y);
+            /* Don't call redraw_char here, graphics_clear handles it */
         }
     }
     vga_row = 0;

@@ -383,10 +383,10 @@ void shell_run(void) {
                             }
                             lines_printed++;
                             
-                            if (lines_printed >= 22 && j < explainer_db[i].num_lines - 1) {
+                            if (lines_printed >= 15 && j < explainer_db[i].num_lines - 1) {
                                 vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-                                vga_puts("\n[Press ENTER for next page...]");
-                                keyboard_getchar(); // wait for enter
+                                vga_puts("\n[Press ENTER for next page...]\n");
+                                while (keyboard_getchar() != '\n');
                                 vga_clear();
                                 lines_printed = 0;
                             }
