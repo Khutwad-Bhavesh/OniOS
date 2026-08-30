@@ -2,8 +2,8 @@
 #include "io.h"
 #include "graphics.h"
 
-#define VGA_WIDTH 100  /* 800 pixels / 8px font = 100 cols */
-#define VGA_HEIGHT 75  /* 600 pixels / 8px font = 75 rows */
+#define VGA_WIDTH 50  /* 800 pixels / 16px font = 50 cols */
+#define VGA_HEIGHT 37  /* 600 pixels / 16px font = 37.5 rows */
 
 static char text_buffer[VGA_HEIGHT][VGA_WIDTH];
 static uint8_t color_buffer[VGA_HEIGHT][VGA_WIDTH];
@@ -39,10 +39,10 @@ static void redraw_char(size_t x, size_t y) {
     uint32_t fg = vga_palette[col & 0x0F];
     uint32_t bg = vga_palette[(col >> 4) & 0x0F];
     
-    /* Draw background rect */
-    graphics_draw_rect(x * 8, y * 8, 8, 8, bg);
-    /* Draw character */
-    graphics_draw_char(c, x * 8, y * 8, fg, bg);
+    /* Draw background rect (16x16) */
+    graphics_draw_rect(x * 16, y * 16, 16, 16, bg);
+    /* Draw character scaled by 2 */
+    graphics_draw_char_scaled(c, x * 16, y * 16, fg, bg, 2);
 }
 
 void vga_init(uint8_t color) {

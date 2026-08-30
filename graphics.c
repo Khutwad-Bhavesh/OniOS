@@ -45,7 +45,7 @@ void graphics_clear(uint32_t color) {
     graphics_draw_rect(0, 0, graphics_width, graphics_height, color);
 }
 
-void graphics_draw_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) {
+void graphics_draw_char_scaled(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color, int scale) {
     if (c < 0 || c >= 128) return; /* Only basic ASCII supported */
     
     char* glyph = font8x8_basic[(int)c];
@@ -54,12 +54,16 @@ void graphics_draw_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint3
         for (int cx = 0; cx < 8; cx++) {
             int set = glyph[cy] & (1 << cx);
             if (set) {
-                graphics_put_pixel(x + cx, y + cy, fg_color);
+                graphics_draw_rect(x + cx * scale, y + cy * scale, scale, scale, fg_color);
             } else {
                 if (bg_color != 0xFFFFFFFF) { /* Use 0xFFFFFFFF for transparent bg */
-                    graphics_put_pixel(x + cx, y + cy, bg_color);
+                    graphics_draw_rect(x + cx * scale, y + cy * scale, scale, scale, bg_color);
                 }
             }
         }
     }
+}
+
+void graphics_draw_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) {
+    graphics_draw_char_scaled(c, x, y, fg_color, bg_color, 1);
 }

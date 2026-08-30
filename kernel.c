@@ -68,10 +68,10 @@ static const size_t VFS_COUNT = sizeof(vfs_table) / sizeof(vfs_table[0]);
 static void print_banner(void) {
     /* Turbo C Classic Yellow on Blue Header */
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
-    vga_puts("================================================================================\n");
+    vga_puts("==================================================\n");
     vga_puts("   OniOS v1.0 -- Bare-Metal Unix Kernel [Modular Subsystem Core]                \n");
     vga_puts("   \"Lessons in Operating Systems -- Never follow boring rules!\"           \n");
-    vga_puts("================================================================================\n");
+    vga_puts("==================================================\n");
     
     vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
 #ifdef HAS_RUST
@@ -89,20 +89,20 @@ static void print_banner(void) {
     vga_puts("  [C Core]     : Standard Bare-Metal C Subsystem Active\n");
 #endif
     vga_puts("  Status       : VFS, Heap Allocator & Nano Editor Active (Type 'help')\n");
-    vga_puts("================================================================================\n\n");
+    vga_puts("==================================================\n\n");
 }
 
 /* Bare-Metal Retro Game: Onizuka Cresta Dodge */
 static void play_game(void) {
     vga_clear();
     vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
-    vga_puts("================================================================================\n");
+    vga_puts("==================================================\n");
     vga_puts("         🎮 ONIZUKA CRESTA DODGE -- Bare-Metal Arcade Engine 🎮               \n");
-    vga_puts("================================================================================\n");
+    vga_puts("==================================================\n");
     vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
     vga_puts(" Controls: 'a' = Move Left | 'd' = Move Right | 'q' = Quit Game\n");
     vga_puts(" Objective: Dodge Uchiyamada's Crestas [CAR] descending down the highway!\n");
-    vga_puts("--------------------------------------------------------------------------------\n\n");
+    vga_puts("--------------------------------------------------\n\n");
 
     int player_x = 40;
     int car_x = 35;
