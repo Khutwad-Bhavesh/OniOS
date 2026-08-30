@@ -1,5 +1,6 @@
 #include "timer.h"
 #include "io.h"
+#include "audio.h"
 
 static volatile uint32_t timer_ticks = 0;
 static uint32_t timer_freq = 100;
@@ -16,6 +17,10 @@ void timer_init(uint32_t frequency) {
 
 void timer_handler(void) {
     timer_ticks++;
+    
+    /* Process audio sequencer tick */
+    audio_tick();
+
     /* Send End of Interrupt (EOI) signal to Master PIC */
     outb(0x20, 0x20);
 }

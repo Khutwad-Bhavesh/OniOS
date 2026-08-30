@@ -9,6 +9,7 @@
 #include "process.h"
 #include "explainer_data.h"
 #include "doom_engine.h"
+#include "audio.h"
 
 
 
@@ -431,6 +432,10 @@ void shell_run(void) {
         }
         else if (strcmp(cmd, "doom") == 0) {
             doom_main();
+        }
+        else if (strcmp(cmd, "playdoom") == 0) {
+            audio_play_doom_theme();
+            vga_puts("Now playing: DOOM E1M1 'At Doom's Gate' in the background!\n");
         }
         else if (strcmp(cmd, "gto") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
