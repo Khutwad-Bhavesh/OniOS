@@ -8,6 +8,7 @@
 #include "test_suite.h"
 #include "process.h"
 #include "explainer_data.h"
+#include "doom_engine.h"
 
 
 
@@ -427,6 +428,9 @@ void shell_run(void) {
         }
         else if (strcmp(cmd, "game") == 0 || strcmp(cmd, "arcade") == 0) {
             play_game();
+        }
+        else if (strcmp(cmd, "doom") == 0) {
+            doom_main();
         }
         else if (strcmp(cmd, "gto") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));

@@ -1,4 +1,5 @@
 #include "doom_engine.h"
+#include "graphics.h"
 #include "vga.h"
 #include "keyboard.h"
 #include "io.h"
@@ -42,12 +43,34 @@ static int ammo = 50;
 static int kills = 0;
 static int shooting = 0;
 
-static void render_doom_frame_clean(void) {
-    uint16_t* const vga_buf = (uint16_t*) 0xB8000;
+static void draw_hud_text(const char* text, uint32_t x, uint32_t y, uint32_t color, uint32_t bg) {
+    while (*text) {
+        graphics_draw_char(*text++, x, y, color, bg);
+        x += 8;
+    }
+}
 
-    /* Render 80 3D Raycasted Columns */
-    for (int x = 0; x < 80; x++) {
-        int camera_x = (2 * x * FP_ONE / 80) - FP_ONE;
+static void draw_hud_num(int val, uint32_t x, uint32_t y, uint32_t color, uint32_t bg) {
+    char buf[12];
+    if (val == 0) {
+        graphics_draw_char('0', x, y, color, bg);
+        return;
+    }
+    int i = 0;
+    while (val > 0) {
+        buf[i++] = '0' + (val % 10);
+        val /= 10;
+    }
+    while (--i >= 0) {
+        graphics_draw_char(buf[i], x, y, color, bg);
+        x += 8;
+    }
+}
+
+static void render_doom_frame_clean(void) {
+    /* Render 3D Raycasted Columns across the entire screen width */
+    for (uint32_t x = 0; x < graphics_width; x++) {
+        int camera_x = (2 * x * FP_ONE / graphics_width) - FP_ONE;
         int ray_dir_x = dir_x + ((plane_x * camera_x) >> FP_SHIFT);
         int ray_dir_y = dir_y + ((plane_y * camera_x) >> FP_SHIFT);
 
@@ -106,76 +129,63 @@ static void render_doom_frame_clean(void) {
 
         if (perp_wall_dist < 32) perp_wall_dist = 32;
 
-        int line_height = (16 * FP_ONE) / (perp_wall_dist > 0 ? perp_wall_dist : 1);
-        int draw_start = -line_height / 2 + 8;
+        int line_height = (graphics_height * FP_ONE) / (perp_wall_dist > 0 ? perp_wall_dist : 1);
+        int draw_start = -line_height / 2 + graphics_height / 2;
         if (draw_start < 0) draw_start = 0;
-        int draw_end = line_height / 2 + 8;
-        if (draw_end >= 16) draw_end = 15;
+        int draw_end = line_height / 2 + graphics_height / 2;
+        if (draw_end >= (int)graphics_height) draw_end = graphics_height - 1;
 
-        /* Wall Shading Colors */
-        uint8_t wall_color;
+        /* Wall Shading Colors (32-bit RGB) */
+        uint32_t wall_color;
         if (wall_type == 2) {
-            wall_color = (side == 1) ? vga_entry_color(VGA_COLOR_BROWN, VGA_COLOR_BLACK) : vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK);
+            wall_color = (side == 1) ? 0xAA5500 : 0xFFFF55; // Brown / Yellow
         } else if (wall_type == 3) {
-            wall_color = (side == 1) ? vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK) : vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+            wall_color = (side == 1) ? 0xAA0000 : 0xFF5555; // Red / Light Red
         } else {
-            wall_color = (side == 1) ? vga_entry_color(VGA_COLOR_CYAN, VGA_COLOR_BLACK) : vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK);
+            wall_color = (side == 1) ? 0x00AAAA : 0x55FFFF; // Cyan / Light Cyan
         }
 
-        /* Render 3D Wall Column directly into VGA memory 0xB8000 */
-        for (int y = 0; y < 16; y++) {
-            uint8_t color;
-            char ch;
-
-            if (y < draw_start) {
-                /* Ceiling: Black Space */
-                color = vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_BLACK);
-                ch = ' ';
-            } else if (y <= draw_end) {
-                /* 3D Wall: Solid CP437 Block 219 (0xDB) '█' */
-                color = wall_color;
-                ch = (char)219;
-            } else {
-                /* Floor: Textured Ground 176 (0xB0) '░' */
-                color = vga_entry_color(VGA_COLOR_DARK_GREY, VGA_COLOR_BLACK);
-                ch = (char)176;
-            }
-
-            vga_buf[y * 80 + x] = vga_entry(ch, color);
+        /* Draw Vertical Column */
+        for (int y = 0; y < draw_start; y++) {
+            graphics_put_pixel(x, y, 0x000000); /* Ceiling: Black Space */
+        }
+        for (int y = draw_start; y <= draw_end; y++) {
+            graphics_put_pixel(x, y, wall_color); /* 3D Wall */
+        }
+        for (int y = draw_end + 1; y < (int)graphics_height; y++) {
+            graphics_put_pixel(x, y, 0x333333); /* Floor: Dark Grey */
         }
     }
 
-    /* Render 3D Shotgun Weapon Sprite on Row 14-15 */
-    uint8_t gun_color = shooting ? vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED) : vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
-    const char* gun_str = shooting ? "   /====[ BANG! FIRE! ]====\\   " : "        /====[ SHOTGUN ]====\\       ";
-    for (int col = 25; col < 60 && gun_str[col - 25]; col++) {
-        vga_buf[15 * 80 + col] = vga_entry(gun_str[col - 25], gun_color);
-    }
+    /* Render DOOM Status Bar HUD at bottom of screen */
+    uint32_t hud_y = graphics_height - 50;
+    graphics_draw_rect(0, hud_y, graphics_width, 50, 0xAA0000); // Red background
+    graphics_draw_rect(5, hud_y + 5, graphics_width - 10, 40, 0x000000); // Inner black border
 
-    /* Render Original 1993 DOOM Red Status Bar at Rows 16-24 */
-    vga_set_cursor(0, 16);
-    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
-    vga_puts("================================================================================\n");
-    vga_set_color(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_RED));
-    vga_puts(" E1M1: KNEE-DEEP IN THE DEAD | HEALTH: ");
-    vga_putdec(health);
-    vga_puts("% | AMMO: ");
-    vga_putdec(ammo);
-    vga_puts(" | KILLS: ");
-    vga_putdec(kills);
+    uint32_t text_y = hud_y + 16;
+    draw_hud_text(" E1M1: KNEE-DEEP IN THE DEAD ", 20, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_text("| HEALTH: ", 260, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_num(health, 340, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_text("% | AMMO: ", 370, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_num(ammo, 450, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_text(" | KILLS: ", 470, text_y, 0xFFFFFF, 0x000000);
+    draw_hud_num(kills, 550, text_y, 0xFFFFFF, 0x000000);
+    
     if (shooting) {
-        vga_puts(" | [BOOM! FIRE]");
+        draw_hud_text(" | [BOOM! FIRE]", 580, text_y, 0xFFFF55, 0x000000);
     } else {
-        vga_puts(" | [SHOTGUN]  ");
+        draw_hud_text(" | [SHOTGUN]  ", 580, text_y, 0xFFFFFF, 0x000000);
     }
-    vga_puts("\n");
-    vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_RED));
-    vga_puts(" Controls: [w/s] Move | [a/d] Turn | [Space/f] Shoot | [q] Exit DOOM            \n");
-    vga_puts("================================================================================\n");
+
+    /* Render 3D Shotgun Weapon Sprite blockily in the center bottom */
+    uint32_t gun_color = shooting ? 0xFFFF55 : 0xFFFFFF; // Yellow flash or white
+    const char* gun_str = shooting ? "BANG!" : "[SHOTGUN]";
+    draw_hud_text(gun_str, graphics_width / 2 - 40, hud_y - 20, gun_color, 0x000000);
+    graphics_draw_rect(graphics_width / 2 - 10, hud_y - 40, 20, 40, 0x777777); // Gun barrel
 }
 
 void doom_main(void) {
-    vga_clear();
+    graphics_clear(0x000000);
     px = 2 * FP_ONE + 128;
     py = 2 * FP_ONE + 128;
     dir_x = FP_ONE;
@@ -193,8 +203,10 @@ void doom_main(void) {
         char c = keyboard_getchar();
 
         if (c == 'q') {
-            vga_clear();
-            vga_puts("Exiting DOOM Engine back to OniOS shell...\n");
+            graphics_clear(0x000000);
+            draw_hud_text("Exiting DOOM Engine back to OniOS shell...", 10, 10, 0x55FF55, 0x000000);
+            /* Reset terminal emulator state */
+            vga_init(0); /* Black bg, black fg (will be overridden by shell anyway) */
             break;
         }
 

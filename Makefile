@@ -13,9 +13,9 @@ HAS_RUST := $(shell rustc --target i686-unknown-linux-gnu --emit=obj /dev/null -
 
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o test_suite.o kernel.o safety.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o test_suite.o kernel.o safety.o
 else
-OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o test_suite.o kernel.o
+OBJS = boot.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o test_suite.o kernel.o
 endif
 
 TARGET = kernel.bin
