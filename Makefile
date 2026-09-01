@@ -93,4 +93,4 @@ clean:
 	rm -rf isodir
 
 run: $(ISO_TARGET)
-	qemu-system-i386 -cdrom $(ISO_TARGET) -vga std
+	qemu-system-i386 -cdrom $(ISO_TARGET) -vga std -audiodev pa,id=snd0 -machine pcspk-audiodev=snd0

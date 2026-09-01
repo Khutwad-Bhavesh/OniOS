@@ -218,8 +218,9 @@ void shell_run(void) {
             vga_puts("  test     - Run 6-Phase Kernel Diagnostic & Stress-Test Suite!\n");
             vga_puts("  uptime   - Display exact system uptime & clock ticks\n");
             vga_puts("  ticks    - Display raw PIT 8254 timer clock ticks\n");
-            vga_puts("  sleep <m>- Pause execution for millisecond duration\n");
+            vga_puts("  doom     - Launch id Software DOOM (Doomgeneric)\n");
             vga_puts("  onizuka  - Run Great Teacher Onizuka's Interactive Lessons! (e.g. 'onizuka boot')\n");
+            vga_puts("  play     - Play the DOOM E1M1 Theme via PC Speaker\n");
             vga_puts("  ps       - List active processes & threads\n");
             vga_puts("  fork     - Spawn a background test process\n");
             vga_puts("  yield    - Yield CPU to next process\n");
@@ -485,6 +486,12 @@ void shell_run(void) {
                 vga_clear();
                 vga_puts("DOOM Exited successfully. Welcome back to OniOS!\n");
             }
+        }
+        else if (strcmp(cmd, "play") == 0) {
+            vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
+            vga_puts("Playing DOOM E1M1 Theme on PC Speaker...\n");
+            extern void audio_play_doom_theme(void);
+            audio_play_doom_theme();
         }
         else if (strcmp(cmd, "gto") == 0) {
             vga_set_color(vga_entry_color(VGA_COLOR_YELLOW, VGA_COLOR_BLACK));
