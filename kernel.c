@@ -196,19 +196,7 @@ void shell_run(void) {
     char cmd[128];
     vga_puts("Type 'help' for a list of commands.\n");
 
-    /* AUTO LAUNCH DOOM */
-    if (doom_wad_start == 0) {
-        vga_puts("ERROR: doom1.wad module not found in multiboot!\n");
-    } else {
-        vga_puts("Launching id Software DOOM (Doomgeneric)!\n");
-        char* argv[] = {"doom", NULL};
-        doomgeneric_Create(1, argv);
-        while (1) {
-            vga_puts("T");
-            extern void doomgeneric_Tick(void);
-            doomgeneric_Tick();
-        }
-    }
+
 
     while (1) {
         /* Shell Prompt displaying current_dir in Bright Green */
