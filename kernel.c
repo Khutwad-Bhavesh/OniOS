@@ -192,6 +192,8 @@ void test_process(void) {
     process_exit();
 }
 
+int doom_is_running = 0;
+
 void shell_run(void) {
     char cmd[128];
     vga_puts("Type 'help' for a list of commands.\n");
@@ -471,11 +473,17 @@ void shell_run(void) {
             } else {
                 vga_puts("Launching id Software DOOM (Doomgeneric)!\n");
                 char* argv[] = {"doom", NULL};
+                doom_is_running = 1;
                 doomgeneric_Create(1, argv);
-                while (1) {
+                while (doom_is_running) {
                     extern void doomgeneric_Tick(void);
                     doomgeneric_Tick();
                 }
+                
+                /* Cleanup and restore shell screen */
+                vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
+                vga_clear();
+                vga_puts("DOOM Exited successfully. Welcome back to OniOS!\n");
             }
         }
         else if (strcmp(cmd, "gto") == 0) {

@@ -243,6 +243,7 @@ void I_BindVariables(void)
 // I_Quit
 //
 
+extern int doom_is_running;
 void I_Quit (void)
 {
     atexit_listentry_t *entry;
@@ -256,6 +257,8 @@ void I_Quit (void)
         entry->func();
         entry = entry->next;
     }
+
+    doom_is_running = 0;
 
 #if ORIGCODE
     SDL_Quit();
