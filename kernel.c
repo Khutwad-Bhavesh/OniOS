@@ -460,14 +460,12 @@ void shell_run(void) {
         else if (strcmp(cmd, "game") == 0 || strcmp(cmd, "arcade") == 0) {
             play_game();
         }
-        else if (strcmp(cmd, "doom") == 0) {
-            doom_main();
-        }
+
         else if (strcmp(cmd, "playdoom") == 0) {
             audio_play_doom_theme();
             vga_puts("Now playing: DOOM E1M1 'At Doom's Gate' in the background!\n");
         }
-        else if (strcmp(cmd, "dosdoom") == 0) {
+        else if (strcmp(cmd, "doom") == 0) {
             if (doom_wad_start == 0) {
                 vga_puts("ERROR: doom1.wad module not found in multiboot!\n");
             } else {
