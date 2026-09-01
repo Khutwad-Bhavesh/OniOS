@@ -70,6 +70,26 @@ static const struct onizuka_step vga_steps[] = {
     {"Step 3: The screen is 80 columns wide and 25 rows high. To print a character at (x, y), we write to: 0xB8000 + (y * 80 + x) * 2."}
 };
 
+/* --- LESSON 4: KERNEL --- */
+static const char* kernel_diagram[] = {
+    "        [ User Applications (Ring 3) ]",
+    "               |   |   |   (System Calls)",
+    "  =============V===V===V==========================",
+    "  [        THE KERNEL (Ring 0 / Supervisor)      ]",
+    "  |  [ Scheduler ] [ Mem Manager ] [ VFS ]       |",
+    "  |  [ IPC       ] [ Drivers     ] [ Net Stack ] |",
+    "  ================================================",
+    "               |       |       |",
+    "        [ Hardware (CPU, RAM, Disk, IO) ]"
+};
+
+static const struct onizuka_step kernel_steps[] = {
+    {"Step 1: The \\033[93mKernel\\033[0m is the absolute core of an Operating System. It runs in the highest privilege mode (Ring 0) and has full control over the hardware."},
+    {"Step 2: It acts as a \\033[93mBridge\\033[0m between the hardware (CPU, RAM, Disks) and the software (user applications like Doom or the shell)."},
+    {"Step 3: Key components include the \\033[93mMemory Manager\\033[0m (allocating RAM), the \\033[93mProcess Scheduler\\033[0m (deciding who gets CPU time), and \\033[93mDevice Drivers\\033[0m (talking to keyboards, mice, and VGA)."},
+    {"Step 4: User apps cannot touch hardware directly! They must request the kernel to do it on their behalf using \\033[93mSystem Calls\\033[0m. If an app tries to bypass the kernel, the CPU triggers a protection fault!"}
+};
+
 /* --- LESSON DB --- */
 static const struct onizuka_lesson onizuka_db[] = {
     {
@@ -95,9 +115,17 @@ static const struct onizuka_lesson onizuka_db[] = {
         .diagram_lines = 7,
         .steps = vga_steps,
         .num_steps = 3
+    },
+    {
+        .topic = "kernel",
+        .title = "Lesson 4: What is a Kernel?",
+        .diagram = kernel_diagram,
+        .diagram_lines = 9,
+        .steps = kernel_steps,
+        .num_steps = 4
     }
 };
 
-#define ONIZUKA_NUM_LESSONS 3
+#define ONIZUKA_NUM_LESSONS 4
 
 #endif

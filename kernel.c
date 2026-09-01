@@ -366,7 +366,7 @@ void shell_run(void) {
             if (cmd[7] != ' ' || cmd[8] == '\0') {
                 vga_set_color(vga_entry_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
                 vga_puts("Usage: onizuka <lesson>\n");
-                vga_puts("Available lessons: boot, interrupts, vga\n");
+                vga_puts("Available lessons: boot, interrupts, vga, kernel\n");
             } else {
                 const char* topic = cmd + 8;
                 int found = 0;
