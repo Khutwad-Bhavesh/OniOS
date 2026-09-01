@@ -552,6 +552,10 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     /* Initialize Process Control Block Scheduler */
     process_init();
 
+    /* Initialize Mouse subsystem */
+    extern void mouse_init(void);
+    mouse_init();
+
     /* Initialize VESA Graphics Framebuffer from Multiboot Info */
     if (magic == MULTIBOOT_BOOTLOADER_MAGIC) {
         multiboot_info_t* mbd = (multiboot_info_t*) addr;

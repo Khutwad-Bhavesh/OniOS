@@ -16,9 +16,9 @@ DOOM_OBJS = $(DOOM_SRCS:.c=.o)
 
 ifneq ($(HAS_RUST),)
 CFLAGS += -DHAS_RUST
-OBJS = boot.o irq0.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o audio.o test_suite.o kernel.o safety.o libc_stubs.o $(DOOM_OBJS)
+OBJS = boot.o irq0.o irq12.o vga.o keyboard.o mouse.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o audio.o test_suite.o kernel.o safety.o libc_stubs.o $(DOOM_OBJS)
 else
-OBJS = boot.o irq0.o vga.o keyboard.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o audio.o test_suite.o kernel.o libc_stubs.o $(DOOM_OBJS)
+OBJS = boot.o irq0.o irq12.o vga.o keyboard.o mouse.o idt.o timer.o mem.o process.o graphics.o editor.o doom_engine.o audio.o test_suite.o kernel.o libc_stubs.o $(DOOM_OBJS)
 endif
 
 TARGET = kernel.bin
@@ -47,6 +47,12 @@ $(ISO_TARGET): $(TARGET) doom1.wad
 
 boot.o: boot.s
 	$(CC) -m32 -c $< -o $@
+
+irq12.o: irq12.s
+	$(CC) -m32 -c $< -o $@
+
+mouse.o: mouse.c mouse.h io.h vga.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 vga.o: vga.c vga.h graphics.h
 	$(CC) $(CFLAGS) -c $< -o $@
