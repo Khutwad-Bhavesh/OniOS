@@ -1,13 +1,15 @@
-# ⚡ OniOS: Bare-Metal Unix-like Kernel & Retro Arcade Engine
+# ⚡ OniOS: The Ultimate Educational Bare-Metal OS
 
-> **"Can it run DOOM? YES, OniOS runs 3D DOOM natively on bare-metal!"**
+> **"Built for students. Built for learning. And yes... it runs DOOM on bare-metal!"**
 
 ![Architecture](https://img.shields.io/badge/Architecture-x86%2032--bit%20Multiboot-blue)
 ![Languages](https://img.shields.io/badge/Languages-C%20%7C%20Assembly%20%7C%20Rust-brightgreen)
-![Aesthetics](https://img.shields.io/badge/Aesthetics-Turbo%20C%20Yellow--on--Blue-gold)
+![Educational](https://img.shields.io/badge/Purpose-Educational%20OS%20Workshop-gold)
 ![License](https://img.shields.io/badge/License-GPLv3-green)
 
-**OniOS** is a standalone, 32-bit Multiboot Unix-like kernel written from scratch in **C**, **x86 Assembly**, and **Rust (`no_std`)**. Built with zero POSIX or Linux kernel dependencies, OniOS features direct hardware memory access (`0xB8000`), PS/2 keyboard scancode drivers, virtual file system traversal (`cd`, `ls`, `cat`), a built-in VGA arcade game (**Onizuka Cresta Dodge**), and a native **3D DOOM Raycasting Engine**!
+**OniOS** is a standalone, 32-bit Multiboot Unix-like kernel written from scratch in **C**, **x86 Assembly**, and **Rust (`no_std`)**. 
+
+Designed specifically as a teaching platform for a **7-Day OS Building Workshop**, OniOS strips away the magic of modern operating systems to show students exactly how a computer works under the hood. Built with zero POSIX or Linux kernel dependencies, it features direct hardware memory access, custom hardware drivers, and interactive built-in lessons to make learning systems programming incredibly fun and rewarding!
 
 Built by **Bhavesh Khutwad**.
 
