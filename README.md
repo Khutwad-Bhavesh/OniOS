@@ -19,7 +19,9 @@ Built by **Bhavesh Khutwad**.
 
 - 🚀 **Zero Dependencies**: Boots directly via Multiboot (`0x1BADB002`) in QEMU or GRUB as an independent OS kernel.
 - 🎨 **Turbo C Aesthetic**: Direct 80x25 VGA text memory driver (`0xB8000`) with classic yellow-on-blue theme, hardware cursor, and smooth scrolling.
-- ⌨️ **PS/2 Keyboard Hardware Driver**: Reads raw CPU scancodes from port `0x60` for interactive shell typing.
+- 🏫 **"Great Teacher Onizuka" Explainer Lessons**: Built-in interactive ASCII lessons to teach students about Booting, Interrupts, VGA, and the Kernel (`onizuka` command).
+- 🔊 **PC Speaker Audio (`play`)**: Native PIT-driven PC Speaker sequencer that plays the DOOM E1M1 theme directly from the motherboard.
+- 🖱️ **Hardware Drivers**: Custom PS/2 Keyboard and PS/2 Mouse drivers, mapped through the IDT and PICs.
 - 📂 **Virtual Filesystem & Traversal**:
   - `cd <dir>`: Navigate subdirectories (`/roms`, `/sys`, `/dev`, `/`).
   - `ls`: List directory files and subfolders.
