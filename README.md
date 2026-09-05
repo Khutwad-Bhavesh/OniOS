@@ -26,10 +26,11 @@ Built by **Bhavesh Khutwad**.
   - `cat <file>`: Display file contents (including `doom1.wad` WAD header).
   - `pwd`: Print current working directory.
 - 🎮 **Bare-Metal Onizuka Cresta Dodge Game (`game`)**: Interactive VGA arcade action game with collision detection & score tracking.
-- 💥 **Native 3D DOOM Raycasting Engine (`doom`)**:
-  - Standalone DDA 3D raycasting renderer.
-  - Real-time DOOM HUD (`HEALTH`, `AMMO`, `KILLS`, `WEAPON`).
-  - Interactive movement (`W`/`A`/`S`/`D`) and shotgun controls (`Space`/`F`).
+- 💥 **Native 3D DOOM (id Software) Port (`doom`)**:
+  - Full integration of the *Doomgeneric* port into the bare-metal kernel.
+  - VESA 32-bit linear framebuffer rendering (Graphics Mode).
+  - Uses the actual `doom1.wad` loaded via GRUB multiboot modules!
+  - Fully working PS/2 Keyboard handling for in-game controls.
 - 🛡️ **Rust Memory Safety**: Integrated `#![no_std]` Rust subsystem module exporting safety verification checks.
 
 ---
