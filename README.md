@@ -65,17 +65,22 @@ make run
 OniOS:/> help
 
 Available OniOS Commands:
-  doom     - Launch 3D Bare-Metal DOOM Raycasting Engine!
-  cd <dir> - Change working directory (e.g. 'cd roms', 'cd sys', 'cd ..')
+  doom     - Launch id Software DOOM (Doomgeneric port)
+  play     - Play the DOOM E1M1 Theme via PC Speaker
+  onizuka  - Run Great Teacher Onizuka's Interactive Lessons (e.g., 'onizuka kernel')
+  cd <dir> - Change working directory (e.g., 'cd roms', 'cd sys', 'cd ..')
   ls       - List directory contents & subfolders
   cat <f>  - Display virtual file content
   pwd      - Print current directory
   game     - Launch Onizuka Cresta Dodge Bare-Metal Arcade!
-  gto      - Display GTO ASCII quote & lesson
+  gto      - Display GTO ASCII quote
   cresta   - Vice Principal Uchiyamada's Cresta status
   suplex   - Execute German Suplex on system bugs
   info     - Display hardware & memory info
   clear    - Clear screen buffer
+  ps       - List active processes & threads
+  fork     - Spawn a background test process
+  yield    - Yield CPU to next process
   reboot   - Hardware CPU reboot via keyboard controller
 ```
 
